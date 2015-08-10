@@ -246,7 +246,7 @@ For further details, just open up a script and read the comments!
 
 5-queryGateway:
 
-* Installs [Query Composer](https://github.com/scoophealth/query-gateway.git) and libraries for PDC Health software
+* Installs [Query Gateway](https://github.com/scoophealth/query-gateway.git) and libraries for PDC Health software
 
 
 6-monitEndpoint:
