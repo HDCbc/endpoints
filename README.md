@@ -117,7 +117,7 @@ Tip: install multiple packages with `sudo apt-get install <p1> <p2> ... <pn> -y`
 Clone Install Scripts to the $HOME Directory:
 
 * `cd $HOME`
-* `git clone https://github.com/PhysiciansDataCollaborative/devops.git`
+* `git clone https://github.com/PhysiciansDataCollaborative/endpoint-deployments.git`
 * `cd devops/Scripts`
 
 Note: this repository may become private
