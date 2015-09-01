@@ -152,10 +152,10 @@ Note: All scripts are precarious and might be best used as guidelines
 
 Add an Endpoint to a Hub:
 
-* Login to https://<HUB_UP>:3002 using an hQuery acccount (see Hub, Creating hQuery Users)
+* Login to https://hub_url_here:3002 using an hQuery acccount (see Hub, Creating hQuery Users)
 * Dashboard > ADD GATEWAY
   * Name: pdc-### (GatewayID)
-  * URL: http://localhost:103## (last two digits in GatewayID)
+  * URL: http://localhost:40000 + endpoint id (for example, endpoing 005 would be 40005)
   * CREATE ENDPOINT
 
 Tip: Click the Queries tab, click a query title and run a few tests on the new endpoint
