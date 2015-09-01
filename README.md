@@ -118,7 +118,7 @@ Clone Install Scripts to the $HOME Directory:
 
 * `cd $HOME`
 * `git clone https://github.com/PhysiciansDataCollaborative/endpoint-deployments.git`
-* `cd devops/Scripts`
+* `cd endpoint-deployments`
 
 Note: this repository may become private
 
