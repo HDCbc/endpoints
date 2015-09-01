@@ -12,7 +12,7 @@ set -x -e # -o nounset
 #
 cd $HOME
 rm -rf ~/.rvm
-gpg --keyserver hkp://keys.gnupg.net --recv-keys D39DC0E3
+gpg --keyserver hkp://keyserver.ubuntu.com --recv-keys D39DC0E3
 curl -L https://get.rvm.io | bash -s stable
 
 
