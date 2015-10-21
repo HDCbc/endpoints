@@ -91,7 +91,7 @@ docker_keygen ()
 		echo "New SSH files generated.  Please take note of the public key."
 		echo
 		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c \
-			'ssh-keygen -b 4096 -t rsa -N "" -C dkey${gID}-$(date +"%Y-%m-%d-%T")" -f ~/.ssh/id_rsa'
+			'ssh-keygen -b 4096 -t rsa -N "" -C dkey${gID}-$(date +"%Y-%m-%d-%T") -f ~/.ssh/id_rsa'
 		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cat /root/.ssh/id_rsa.pub'
 		echo
 		echo
@@ -142,7 +142,7 @@ docker_gateway ()
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
-	[ ${DOCTOR_IDS} == "" ]|| \
+	[ -z ${DOCTOR_IDS} ]|| \
 		sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}
 }
 
@@ -315,3 +315,7 @@ case "${COMMAND}" in
 	"keygen"      ) docker_keygen;;
 	*             ) usage_help;;
 esac
+
+echo
+echo "Done!  Please remember to source ~/.bashrc if changes were made."
+echo

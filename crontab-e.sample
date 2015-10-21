@@ -5,7 +5,6 @@
 
 # This script needs to run after the last SQL dump update of the night is
 # written to ~nerdmin directory.
-#31 8 * * * /encrypted/root/mysql_reload.sh > /encrypted/root/log 2>&1
 31 8 * * * cd /encrypted/docker; /encrypted/docker/endpoint.sh import >> /encrypted/docker/cron-import.log 2>&1
 
 
