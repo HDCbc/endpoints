@@ -2,11 +2,11 @@
 # This repo only #
 ##################
 
+*.env
 *.json
 *.xml
 *.sql
-*.tar.gzip
-*.env
+!sample10.sql
 
 ########################
 ### GitHub Suggested ###
