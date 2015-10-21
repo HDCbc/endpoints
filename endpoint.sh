@@ -75,35 +75,45 @@ usage_help ()
 #
 docker_keygen ()
 {
-	# Create data container for ssh details
-	sudo docker run -d ${RUN_KEYHOLDER}
+	# Only create keyholder if necessary
+	STATUS_KEYHOLDER=$( sudo docker inspect -f {{.State.Running}} ${NAME_KEYHOLDER} ) || true
+	if( ${STATUS_KEYHOLDER} = "true" )
+	then
+		echo "NOTE: Updates should reuse existing ssh keys"
+	else
+	{
+		# Create data container for ssh details
+		inform_exec "Running keyholder" \
+			"sudo docker run -d ${RUN_KEYHOLDER}"
 
-	# Echo public key
-	echo
-	echo "New SSH files generated.  Please take note of the public key."
-	echo
-	sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c \
-		'ssh-keygen -b 4096 -t rsa -N "" -C "$(whoami)@$(hostname)-$(date +"%Y-%m-%d-%T")" -f ~/.ssh/id_rsa'
-	sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cat /root/.ssh/id_rsa.pub'
-	echo
-	echo
+		# Echo public key
+		echo
+		echo "New SSH files generated.  Please take note of the public key."
+		echo
+		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c \
+			'ssh-keygen -b 4096 -t rsa -N "" -C dkey${gID}-$(date +"%Y-%m-%d-%T")" -f ~/.ssh/id_rsa'
+		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cat /root/.ssh/id_rsa.pub'
+		echo
+		echo
 
-	# Test the key, generating a known_hosts file, otherwise remove container
-	echo "Press enter when that key ready to test this key"
-	echo
-	read ENTER_TO_CONTINUE
-	sudo docker exec -ti ${NAME_KEYHOLDER} /bin/bash -c \
-		'ssh -p ${PORT_AUTOSSH} autossh@${IP_HUB} -o StrictHostKeyChecking=no "hostname; exit"'
+		# Test the key, generating a known_hosts file, otherwise remove container
+		echo "Press enter when that key ready to test this key"
+		echo
+		read ENTER_TO_CONTINUE
+		sudo docker exec -ti ${NAME_KEYHOLDER} /bin/bash -c \
+			'ssh -p ${PORT_AUTOSSH} autossh@${IP_HUB} -o StrictHostKeyChecking=no "hostname; exit"'
 
-	# Copy files to expected location
-	sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'mkdir -p /home/autossh/.ssh/'
-	sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cp /root/.ssh/* /home/autossh/.ssh/'
-	sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cp /root/.ssh/* /home/autossh/.ssh/'
-	echo
-	echo
-	echo "Success!"
-	echo
-	echo
+		# Copy files to expected location
+		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'mkdir -p /home/autossh/.ssh/'
+		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cp /root/.ssh/* /home/autossh/.ssh/'
+		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cp /root/.ssh/* /home/autossh/.ssh/'
+		echo
+		echo
+		echo "Success!"
+		echo
+		echo
+	}
+	fi
 }
 
 
@@ -141,6 +151,8 @@ docker_gateway ()
 #
 docker_deploy ()
 {
+	docker_configure
+	docker_keygen
 	docker_database
 	docker_gateway
 }
@@ -173,6 +185,10 @@ docker_configure ()
 			sudo modprobe aufs; \
 			wget -qO- https://get.docker.com/ | sh; \
 		)
+
+	# Stop Docker from loading at boot
+	sudo sed -i '/![^#]/ s/\(^start on.*$\)/#\ \1/' /etc/init/docker.conf
+
 
 	# Disable Transparent Hugepages for MongoDB, while running
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
