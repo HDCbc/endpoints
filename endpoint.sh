@@ -97,7 +97,7 @@ docker_keygen ()
 		echo
 
 		# Test the key, generating a known_hosts file, otherwise remove container
-		echo "Press enter when that key ready to test this key"
+		echo "Copy that key over, then press Enter to test it"
 		echo
 		read ENTER_TO_CONTINUE
 		sudo docker exec -ti ${NAME_KEYHOLDER} /bin/bash -c \
