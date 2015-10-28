@@ -6,7 +6,6 @@
 *.json
 *.xml
 *.sql
-!sample10.sql
 
 ########################
 ### GitHub Suggested ###
