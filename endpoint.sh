@@ -195,8 +195,8 @@ docker_configure ()
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
 
 	# Disable Transparent Hugepage for MongoDB, after reboots
-	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local ); \
-	then \
+	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local )
+	then
 		sudo sed -i '/exit 0/d' /etc/rc.local; \
 		( \
 			echo ''; \
@@ -212,8 +212,8 @@ docker_configure ()
 
 
 	# Configure ~/.bashrc, if necessary
-	if(! grep --quiet 'function dockin()' ${HOME}/.bashrc ); \
-	then \
+	if(! grep --quiet 'function dockin()' ${HOME}/.bashrc )
+	then
 		( \
 			echo ''; \
 			echo '# Function to quickly enter containers'; \
@@ -254,33 +254,53 @@ docker_configure ()
 	fi
 
 
-	# TO DO:
-
-	# Random number generator - useful?
-	# PW=$(echo $(openssl rand -base64 $( date +%S ) | md5sum | base64 ))
-
-
-	# Install dm-crypt (/w crypttab, regenerates on boot)
-	#
-	# Use /etc/crypttab to create encrypted SWAP
-	# Use /etc/crypttab to create encrypted /dev/SOMETHING
+	# Create OSP account
+	if(! grep --quiet 'OSP Export Account' /etc/passwd ); \
+	then
+		sudo useradd -m -d /encrypted/docker/import -c "OSP Export Account" -s /bin/bash exporter
+	fi
 
 
-	# Create data storage areas
-	#
-	# Config data (CPSIDs, IPs, gID#) somewhere persistent
-	# Private data points to /dev/SOMETHING (encrypted, destroyed)
-
-
-	# Networking
-	#
-	# Use dynamic address as primary connection
-	# Load persistent config, add secondary IP
-
-
-	# Docker and container setups
-	#
-	# Use private and config locations
+	# Create post-boot script (assumes /encrypted/ is encrypted)
+	START=${HOME}/ep-start.sh
+	if(! grep --quiet 'sudo service docker start' ${START} ); \
+	then \
+	  ( \
+			echo '#!/bin/bash'; \
+			echo '#'; \
+			echo 'set -e -o nounset'; \
+			echo ''; \
+			echo ''; \
+			echo '# Decrypt /encrypted/ and source the endpoint.env'; \
+			echo '#'; \
+			echo '[ -s /encrypted/docker/endpoint.env ]|| \'; \
+	    echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
+			echo '. /encrypted/docker/endpoint.env'; \
+			echo ''; \
+			echo ''; \
+			echo '# Start Docker'; \
+			echo '#'; \
+			echo '[ $(pgrep -c docker) -gt 0 ]|| \'; \
+	    echo '	sudo service docker start'; \
+			echo ''; \
+			echo ''; \
+			echo '# Add static IP, if provided in env file'; \
+			echo '#'; \
+			echo '${IP_STATIC:-""}'; \
+			echo '[ -z ${IP_STATIC} ]|| \'; \
+			echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
+			echo ''; \
+			echo ''; \
+			echo '# Record and log IPs (w/o Docker, loopback)'; \
+			echo '#'; \
+	    echo 'IP=$( hostname -I | \'; \
+	    echo "  sed 's/\(172.17.[0-9]*.[0-9]*\)//' | \\"; \
+	    echo "  sed 's/\(127.0.[0-9]*.[0-9]*\)//' \\"; \
+	    echo ')'; \
+	    echo 'echo ${IP} - $(date) >> ~/IP.log'; \
+		) | tee ${START}; \
+	fi
+	chmod +x ${START}
 }
 
 
