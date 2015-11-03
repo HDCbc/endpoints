@@ -194,6 +194,7 @@ docker_configure ()
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
 
+
 	# Disable Transparent Hugepage for MongoDB, after reboots
 	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local )
 	then
@@ -209,6 +210,18 @@ docker_configure ()
 		) | sudo tee -a /etc/rc.local; \
 	fi
 	sudo chmod 755 /etc/rc.local
+
+
+	# Reduce SWAP usage (swappiness)
+	echo 0 | sudo tee /proc/sys/vm/swappiness
+        if(! grep --quiet 'vm.swappiness = 0' /etc/sysctl.conf )
+        then
+                ( \
+                        echo ''; \
+                        echo '# Reduce SWAP Usage'; \
+                        echo 'vm.swappiness.conf'; \
+                ) | sudo tee -a /etc/sysctl.conf; \
+        fi
 
 
 	# Configure ~/.bashrc, if necessary
@@ -266,39 +279,39 @@ docker_configure ()
 	if(! grep --quiet 'sudo service docker start' ${START} ); \
 	then \
 	  ( \
-			echo '#!/bin/bash'; \
-			echo '#'; \
-			echo 'set -e -o nounset'; \
-			echo ''; \
-			echo ''; \
-			echo '# Decrypt /encrypted/ and source the endpoint.env'; \
-			echo '#'; \
-			echo '[ -s /encrypted/docker/endpoint.env ]|| \'; \
-	    echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
-			echo '. /encrypted/docker/endpoint.env'; \
-			echo ''; \
-			echo ''; \
-			echo '# Start Docker'; \
-			echo '#'; \
-			echo '[ $(pgrep -c docker) -gt 0 ]|| \'; \
-	    echo '	sudo service docker start'; \
-			echo ''; \
-			echo ''; \
-			echo '# Add static IP, if provided in env file'; \
-			echo '#'; \
-			echo '${IP_STATIC:-""}'; \
-			echo '[ -z ${IP_STATIC} ]|| \'; \
-			echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
-			echo ''; \
-			echo ''; \
-			echo '# Record and log IPs (w/o Docker, loopback)'; \
-			echo '#'; \
-	    echo 'IP=$( hostname -I | \'; \
-	    echo "  sed 's/\(172.17.[0-9]*.[0-9]*\)//' | \\"; \
-	    echo "  sed 's/\(127.0.[0-9]*.[0-9]*\)//' \\"; \
-	    echo ')'; \
-	    echo 'echo ${IP} - $(date) >> ~/IP.log'; \
-		) | tee ${START}; \
+		echo '#!/bin/bash'; \
+		echo '#'; \
+		echo 'set -e -o nounset'; \
+		echo ''; \
+		echo ''; \
+		echo '# Decrypt /encrypted/ and source the endpoint.env'; \
+		echo '#'; \
+		echo '[ -s /encrypted/docker/endpoint.env ]|| \'; \
+		echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
+		echo '. /encrypted/docker/endpoint.env'; \
+		echo ''; \
+		echo ''; \
+		echo '# Start Docker'; \
+		echo '#'; \
+		echo '[ $(pgrep -c docker) -gt 0 ]|| \'; \
+		echo '	sudo service docker start'; \
+		echo ''; \
+		echo ''; \
+		echo '# Add static IP, if provided in env file'; \
+		echo '#'; \
+		echo '${IP_STATIC:-""}'; \
+		echo '[ -z ${IP_STATIC} ]|| \'; \
+		echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
+		echo ''; \
+		echo ''; \
+		echo '# Record and log IPs (w/o Docker, loopback)'; \
+		echo '#'; \
+		echo 'IP=$( hostname -I | \'; \
+		echo "  sed 's/\(172.17.[0-9]*.[0-9]*\)//' | \\"; \
+		echo "  sed 's/\(127.0.[0-9]*.[0-9]*\)//' \\"; \
+		echo ')'; \
+		echo 'echo ${IP} - $(date) >> ~/IP.log'; \
+	  ) | tee ${START}; \
 	fi
 	chmod +x ${START}
 }
