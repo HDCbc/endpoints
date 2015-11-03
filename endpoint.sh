@@ -212,13 +212,13 @@ docker_configure ()
 	sudo chmod 755 /etc/rc.local
 
 
-	# Reduce SWAP usage (swappiness)
+	# Reduce swap usage (swappiness)
 	echo 0 | sudo tee /proc/sys/vm/swappiness
         if(! grep --quiet 'vm.swappiness = 0' /etc/sysctl.conf )
         then
                 ( \
                         echo ''; \
-                        echo '# Reduce SWAP Usage'; \
+                        echo '# Reduce swap usage'; \
                         echo 'vm.swappiness.conf'; \
                 ) | sudo tee -a /etc/sysctl.conf; \
         fi
