@@ -63,6 +63,7 @@ usage_help ()
 	echo
 	echo "Commands:"
 	echo "	deploy      Run a new Gateway"
+	echo "	testgroup   Run a new Gateway with a sencond test Gateway"
 	echo "	import      Run and then remove an OSCAR_E2E importer"
 	echo "	configure   Configures Docker, MongoDB and bash"
 	echo "	keygen      Run a keyholder for SSH keys"
@@ -142,6 +143,9 @@ docker_gateway ()
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
+	sudo docker exec -ti ${NAME_GATEWAY} /bin/bash -c \
+		'/sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${IP_HUB} -o StrictHostKeyChecking=no "hostname; exit"'
+
 	[ -z ${DOCTOR_IDS} ]|| \
 		sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}
 }
@@ -155,6 +159,30 @@ docker_deploy ()
 	docker_keygen
 	docker_database
 	docker_gateway
+}
+
+
+# Run deployment, but add a second test gateway
+#
+docker_testgroup ()
+{
+	NAME_GATEWAY=${NAME_GATEWAY}-testgroup
+	IP_HUB=142.104.128.121
+	RUN_GW_BASE="--name ${NAME_GATEWAY} -h ${NAME_GATEWAY} --restart='always'"
+	RUN_GW_VARS="-e gID=${GATEWAY_ID} -e IP_HUB=${IP_HUB} -e PORT_AUTOSSH=${PORT_AUTOSSH}"
+	RUN_GATEWAY="${RUN_GW_BASE} ${RUN_GW_LINKS} ${RUN_GW_VOLS} ${RUN_GW_VARS} ${REPO_GATEWAY}"
+
+	#Provide directions for adding a gateway on the test network
+	echo "To add a test network gateway use the following:"
+	echo
+	echo "sudo docker run -d ${RUN_GATEWAY}"
+	echo
+	echo "sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+	echo
+	echo "sudo docker exec -ti ${NAME_GATEWAY} /sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${IP_HUB} -o StrictHostKeyChecking=no \"hostname; exit\""
+	echo
+	echo
+	exit
 }
 
 
@@ -343,6 +371,7 @@ source ${SCRIPT_DIR}/endpoint.env
 #
 case "${COMMAND}" in
 	"deploy"      ) docker_deploy;;
+	"testgroup"   ) docker_testgroup;;
 	"import"      ) docker_oscar;;
 	"configure"   ) docker_configure;;
 	"keygen"      ) docker_keygen;;
