@@ -63,7 +63,6 @@ usage_help ()
 	echo
 	echo "Commands:"
 	echo "	deploy      Run a new Gateway"
-	echo "	testgroup   Run a new Gateway with a sencond test Gateway"
 	echo "	import      Run and then remove an OSCAR_E2E importer"
 	echo "	configure   Configures Docker, MongoDB and bash"
 	echo "	keygen      Run a keyholder for SSH keys"
@@ -143,9 +142,6 @@ docker_gateway ()
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
-	sudo docker exec -ti ${NAME_GATEWAY} /bin/bash -c \
-		'/sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${IP_HUB} -o StrictHostKeyChecking=no "hostname; exit"'
-
 	[ -z ${DOCTOR_IDS} ]|| \
 		sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}
 }
@@ -162,30 +158,6 @@ docker_deploy ()
 }
 
 
-# Run deployment, but add a second test gateway
-#
-docker_testgroup ()
-{
-	NAME_GATEWAY=${NAME_GATEWAY}-testgroup
-	IP_HUB=142.104.128.121
-	RUN_GW_BASE="--name ${NAME_GATEWAY} -h ${NAME_GATEWAY} --restart='always'"
-	RUN_GW_VARS="-e gID=${GATEWAY_ID} -e IP_HUB=${IP_HUB} -e PORT_AUTOSSH=${PORT_AUTOSSH}"
-	RUN_GATEWAY="${RUN_GW_BASE} ${RUN_GW_LINKS} ${RUN_GW_VOLS} ${RUN_GW_VARS} ${REPO_GATEWAY}"
-
-	#Provide directions for adding a gateway on the test network
-	echo "To add a test network gateway use the following:"
-	echo
-	echo "sudo docker run -d ${RUN_GATEWAY}"
-	echo
-	echo "sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
-	echo
-	echo "sudo docker exec -ti ${NAME_GATEWAY} /sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${IP_HUB} -o StrictHostKeyChecking=no \"hostname; exit\""
-	echo
-	echo
-	exit
-}
-
-
 # Import an OSCAR SQL dump, containers not persistent
 #
 docker_oscar ()
@@ -198,7 +170,8 @@ docker_oscar ()
 	sudo docker rm -fv ${NAME_OSCAR} || true
 	sudo docker pull ${REPO_OSCAR}
 
-	sudo docker run -t ${RUN_OSCAR} || true
+	inform_exec "Running OSCAR Exporter" \
+		"sudo docker run -t ${RUN_OSCAR} || true"
 	sudo docker rm -fv ${NAME_OSCAR}
 }
 
@@ -222,7 +195,6 @@ docker_configure ()
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
 
-
 	# Disable Transparent Hugepage for MongoDB, after reboots
 	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local )
 	then
@@ -238,18 +210,6 @@ docker_configure ()
 		) | sudo tee -a /etc/rc.local; \
 	fi
 	sudo chmod 755 /etc/rc.local
-
-
-	# Reduce swap usage (swappiness)
-	echo 0 | sudo tee /proc/sys/vm/swappiness
-        if(! grep --quiet 'vm.swappiness = 0' /etc/sysctl.conf )
-        then
-                ( \
-                        echo ''; \
-                        echo '# Reduce swap usage'; \
-                        echo 'vm.swappiness.conf'; \
-                ) | sudo tee -a /etc/sysctl.conf; \
-        fi
 
 
 	# Configure ~/.bashrc, if necessary
@@ -307,39 +267,39 @@ docker_configure ()
 	if(! grep --quiet 'sudo service docker start' ${START} ); \
 	then \
 	  ( \
-		echo '#!/bin/bash'; \
-		echo '#'; \
-		echo 'set -e -o nounset'; \
-		echo ''; \
-		echo ''; \
-		echo '# Decrypt /encrypted/ and source the endpoint.env'; \
-		echo '#'; \
-		echo '[ -s /encrypted/docker/endpoint.env ]|| \'; \
-		echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
-		echo '. /encrypted/docker/endpoint.env'; \
-		echo ''; \
-		echo ''; \
-		echo '# Start Docker'; \
-		echo '#'; \
-		echo '[ $(pgrep -c docker) -gt 0 ]|| \'; \
-		echo '	sudo service docker start'; \
-		echo ''; \
-		echo ''; \
-		echo '# Add static IP, if provided in env file'; \
-		echo '#'; \
-		echo '${IP_STATIC:-""}'; \
-		echo '[ -z ${IP_STATIC} ]|| \'; \
-		echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
-		echo ''; \
-		echo ''; \
-		echo '# Record and log IPs (w/o Docker, loopback)'; \
-		echo '#'; \
-		echo 'IP=$( hostname -I | \'; \
-		echo "  sed 's/\(172.17.[0-9]*.[0-9]*\)//' | \\"; \
-		echo "  sed 's/\(127.0.[0-9]*.[0-9]*\)//' \\"; \
-		echo ')'; \
-		echo 'echo ${IP} - $(date) >> ~/IP.log'; \
-	  ) | tee ${START}; \
+			echo '#!/bin/bash'; \
+			echo '#'; \
+			echo 'set -e -o nounset'; \
+			echo ''; \
+			echo ''; \
+			echo '# Decrypt /encrypted/ and source the endpoint.env'; \
+			echo '#'; \
+			echo '[ -s /encrypted/docker/endpoint.env ]|| \'; \
+	    echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
+			echo '. /encrypted/docker/endpoint.env'; \
+			echo ''; \
+			echo ''; \
+			echo '# Start Docker'; \
+			echo '#'; \
+			echo '[ $(pgrep -c docker) -gt 0 ]|| \'; \
+	    echo '	sudo service docker start'; \
+			echo ''; \
+			echo ''; \
+			echo '# Add static IP, if provided in env file'; \
+			echo '#'; \
+			echo '${IP_STATIC:-""}'; \
+			echo '[ -z ${IP_STATIC} ]|| \'; \
+			echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
+			echo ''; \
+			echo ''; \
+			echo '# Record and log IPs (w/o Docker, loopback)'; \
+			echo '#'; \
+	    echo 'IP=$( hostname -I | \'; \
+	    echo "  sed 's/\(172.17.[0-9]*.[0-9]*\)//' | \\"; \
+	    echo "  sed 's/\(127.0.[0-9]*.[0-9]*\)//' \\"; \
+	    echo ')'; \
+	    echo 'echo ${IP} - $(date) >> ~/IP.log'; \
+		) | tee ${START}; \
 	fi
 	chmod +x ${START}
 }
@@ -371,7 +331,6 @@ source ${SCRIPT_DIR}/endpoint.env
 #
 case "${COMMAND}" in
 	"deploy"      ) docker_deploy;;
-	"testgroup"   ) docker_testgroup;;
 	"import"      ) docker_oscar;;
 	"configure"   ) docker_configure;;
 	"keygen"      ) docker_keygen;;
