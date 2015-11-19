@@ -138,7 +138,7 @@ docker_gateway ()
 {
 	sudo docker rm -fv ${NAME_GATEWAY} || true
 
-	#sudo docker pull ${REPO_GATEWAY}
+	sudo docker pull ${REPO_GATEWAY}
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
@@ -168,7 +168,7 @@ docker_import ()
 		docker_deploy
 
 	sudo docker rm -fv ${NAME_OSCAR} || true
-	#sudo docker pull ${REPO_OSCAR}
+	sudo docker pull ${REPO_OSCAR}
 
 	inform_exec "Running OSCAR Exporter" \
 		"sudo docker run -t ${RUN_OSCAR} || true"
