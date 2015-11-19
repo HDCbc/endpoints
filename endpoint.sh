@@ -121,14 +121,27 @@ docker_keygen ()
 #
 docker_database ()
 {
-	sudo docker pull mongo
-	sudo docker run -d ${RUN_DATABASE} || \
-		echo "NOTE: Updates should reuse existing databases"
+	STATUS_DATABASE=$( sudo docker inspect -f {{.State.Running}} ${NAME_DATABASE} ) || true
+	if [ ${STATUS_DATABASE} ]
+	then
+		echo "NOTE: Reusing existing database"
+	else
+	{
+		# Update image and remove container, if stopped
+		sudo docker pull mongo
+		sudo docker rm ${NAME_DATABASE} || true
 
-	sleep 5
-	sudo docker exec -ti ${NAME_DATABASE} /bin/bash -c \
-		"mongo query_gateway_development --eval \
-  	'printjson( db.records.ensureIndex({ hash_id : 1 }, { unique : true }))'"
+		# Run a new container
+		inform_exec "Running database" \
+			"sudo docker run -d ${RUN_DATABASE}"
+
+		# Set index
+		sleep 5
+		sudo docker exec -ti ${NAME_DATABASE} /bin/bash -c \
+			"mongo query_gateway_development --eval \
+  		'printjson( db.records.ensureIndex({ hash_id : 1 }, { unique : true }))'"
+	}
+	fi
 }
 
 
@@ -136,12 +149,15 @@ docker_database ()
 #
 docker_gateway ()
 {
+	# Update image and remove conatiner
+	sudo docker pull ${REPO_GATEWAY}
 	sudo docker rm -fv ${NAME_GATEWAY} || true
 
-	sudo docker pull ${REPO_GATEWAY}
+	# Run a new container
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
+	# Populate providers.txt
 	[ -z ${DOCTOR_IDS} ]|| \
 		sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}
 }
@@ -162,19 +178,21 @@ docker_deploy ()
 #
 docker_import ()
 {
-	# Make sure the Gateway is up
-	STATUS_GATEWAY=$( sudo docker inspect -f {{.State.Running}} ${NAME_GATEWAY} ) || true
-	[ ! -z ${STATUS_GATEWAY} ]|| \
-		docker_deploy
+	# Redeploy Gateway container and ensure database is running
+	docker_deploy
 
-	sudo docker rm -fv ${NAME_OSCAR} || true
+	# Update image and remove container, if present
 	sudo docker pull ${REPO_OSCAR}
+	sudo docker rm -fv ${NAME_OSCAR} || true
 
+	# Run a new container, but in the foreground
 	inform_exec "Running OSCAR Exporter" \
 		"sudo docker run -t ${RUN_OSCAR} || true"
+
+	# Remove container when done
 	sudo docker rm -fv ${NAME_OSCAR}
 
-	# Transfer any files that may have been generated
+	# Have Gateway sync any plugin files back to the Hub
 	sudo docker exec -t gateway /app/sync_hub.sh
 }
 
