@@ -63,7 +63,7 @@ usage_help ()
 	echo
 	echo "Commands:"
 	echo "	deploy      Run a new Gateway"
-	echo "	import      Run and then remove an OSCAR_E2E importer"
+	echo "	import      Import E2E using OSCAR and Plugins"
 	echo "	configure   Configures Docker, MongoDB and bash"
 	echo "	keygen      Run a keyholder for SSH keys"
 	echo
@@ -138,7 +138,7 @@ docker_gateway ()
 {
 	sudo docker rm -fv ${NAME_GATEWAY} || true
 
-	sudo docker pull ${REPO_GATEWAY}
+	#sudo docker pull ${REPO_GATEWAY}
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
@@ -160,19 +160,22 @@ docker_deploy ()
 
 # Import an OSCAR SQL dump, containers not persistent
 #
-docker_oscar ()
+docker_import ()
 {
 	# Make sure the Gateway is up
 	STATUS_GATEWAY=$( sudo docker inspect -f {{.State.Running}} ${NAME_GATEWAY} ) || true
-	[ ${STATUS_GATEWAY} = "true" ]|| \
+	[ ! -z ${STATUS_GATEWAY} ]|| \
 		docker_deploy
 
 	sudo docker rm -fv ${NAME_OSCAR} || true
-	sudo docker pull ${REPO_OSCAR}
+	#sudo docker pull ${REPO_OSCAR}
 
 	inform_exec "Running OSCAR Exporter" \
 		"sudo docker run -t ${RUN_OSCAR} || true"
 	sudo docker rm -fv ${NAME_OSCAR}
+
+	# Transfer any files that may have been generated
+	sudo docker exec -t gateway /app/sync_hub.sh
 }
 
 
@@ -331,7 +334,7 @@ source ${SCRIPT_DIR}/endpoint.env
 #
 case "${COMMAND}" in
 	"deploy"      ) docker_deploy;;
-	"import"      ) docker_oscar;;
+	"import"      ) docker_import;;
 	"configure"   ) docker_configure;;
 	"keygen"      ) docker_keygen;;
 	*             ) usage_help;;
