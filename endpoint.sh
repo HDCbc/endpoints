@@ -159,7 +159,8 @@ docker_gateway ()
 
 	# Populate providers.txt
 	[ -z ${DOCTOR_IDS} ]|| \
-		sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}
+		inform_exec "Populating providers.txt" \
+			"sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 }
 
 
