@@ -185,12 +185,9 @@ docker_import ()
 	sudo docker pull ${REPO_OSCAR}
 	sudo docker rm -fv ${NAME_OSCAR} || true
 
-	# Run a new container, but in the foreground
+	# Run a new foreground container, removed when done (--rm)
 	inform_exec "Running OSCAR Exporter" \
 		"sudo docker run -t ${RUN_OSCAR} || true"
-
-	# Remove container when done
-	sudo docker rm -fv ${NAME_OSCAR}
 
 	# Have Gateway sync any plugin files back to the Hub
 	sudo docker exec -t gateway /app/sync_hub.sh
