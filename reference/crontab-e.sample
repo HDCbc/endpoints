@@ -1,19 +1,8 @@
-# Run five minutes after hour, every day
-# Provides automatic recovery if monit unmonitors autossh_admin
-5 * * * *  /usr/bin/monit start autossh_admin >> /var/log/monit-cron.log 2>&1
-
-
-# This script needs to run after the last SQL dump update of the night is
-# written to ~nerdmin directory.
-31 8 * * * cd /encrypted/docker; /encrypted/docker/endpoint.sh import >> /encrypted/docker/cron-import.log 2>&1
-
-
-# This check needs to happen before the catalina.out log is rotated
-# This is configured in /etc/cron.daily/logrotate
-# From /etc/crontab the daily crons start around 6:25AM.
-1 6 * * * /root/bin/export_check.sh > /dev/null 2>&1
-
-
-# Create and backup 3rd Next output Tuesdays at 8 AM (note: day 7 = Sunday)
+# Maintain autossh admin tunnel
 #
-0 8 * * 2 /encrypted/OscarThirdNextAppt/3rdNext.sh
+5 * * * * /usr/bin/monit start autossh_admin >> /var/log/monit-cron.log 2>&1
+
+
+# Import data after nightly SQL dumps
+#
+0 2 * * * cd /encrypted/docker; /encrypted/docker/endpoint.sh import >> /encrypted/docker/cron-import.log 2>&1
