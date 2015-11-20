@@ -137,7 +137,7 @@ docker_database ()
 
 		# Set index
 		sleep 5
-		sudo docker exec -ti ${NAME_DATABASE} /bin/bash -c \
+		sudo docker exec ${NAME_DATABASE} /bin/bash -c \
 			"mongo query_gateway_development --eval \
   		'printjson( db.records.ensureIndex({ hash_id : 1 }, { unique : true }))'"
 	}
@@ -160,7 +160,7 @@ docker_gateway ()
 	# Populate providers.txt
 	[ -z ${DOCTOR_IDS} ]|| \
 		inform_exec "Populating providers.txt" \
-			"sudo docker exec -ti ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+			"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 }
 
 
@@ -188,10 +188,10 @@ docker_import ()
 
 	# Run a new foreground container, removed when done (--rm)
 	inform_exec "Running OSCAR Exporter" \
-		"sudo docker run -t ${RUN_OSCAR} || true"
+		"sudo docker run ${RUN_OSCAR} || true"
 
 	# Have Gateway sync any plugin files back to the Hub
-	sudo docker exec -t gateway /app/sync_hub.sh
+	sudo docker exec ${NAME_GATEWAY} /app/sync_hub.sh
 }
 
 
