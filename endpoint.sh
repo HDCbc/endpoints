@@ -150,7 +150,7 @@ docker_database ()
 docker_gateway ()
 {
 	# Update image and remove conatiner
-	sudo docker pull ${REPO_GATEWAY}
+	sudo docker pull ${IMG_GATEWAY}
 	sudo docker rm -fv ${NAME_GATEWAY} || true
 
 	# Run a new container
@@ -158,7 +158,7 @@ docker_gateway ()
 		"sudo docker run -d ${RUN_GATEWAY}"
 
 	# Populate providers.txt
-	[ -z ${DOCTOR_IDS} ]|| \
+	[ -z ${DOCTOR_IDS}  \
 		inform_exec "Populating providers.txt" \
 			"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 }
@@ -183,7 +183,7 @@ docker_import ()
 	docker_deploy
 
 	# Update image and remove container, if present
-	sudo docker pull ${REPO_OSCAR}
+	sudo docker pull ${IMG_OSCAR}
 	sudo docker rm -fv ${NAME_OSCAR} || true
 
 	# Run a new foreground container, removed when done (--rm)
@@ -275,6 +275,7 @@ docker_configure ()
 
 
 	# Create OSP account
+	sudo mkdir -p /encrypted/docker/import
 	if(! grep --quiet 'OSP Export Account' /etc/passwd ); \
 	then
 		sudo useradd -m -d /encrypted/docker/import -c "OSP Export Account" -s /bin/bash exporter
@@ -342,8 +343,14 @@ source ${SCRIPT_DIR}/endpoint.env
 
 # If DNS is disabled (,, = lowercase, bash 4+), then use --dns-search=.
 #
-[ "${DNS_DISABLE,,}" != "yes" ] || \
+[ "${DNS_DISABLE,,}" != "yes" ]|| \
 	export DOCKER_GATEWAY="${DOCKER_GATEWAY} --dns-search=."
+
+
+# If using RAM_REDUCE (,, = lowercase, bash 4+), then append to image options
+#
+[ "${RAM_REDUCE,,}" != "yes" ]|| \
+	${IMG_OPS_DATABASE}+=" ${IMG_OPS_DATABASE_LOWRAM}"
 
 
 # Run based on command
