@@ -266,6 +266,7 @@ docker_configure ()
 			echo "alias l='sudo docker logs -f'"; \
 			echo "alias p='sudo docker ps -a'"; \
 			echo "alias s='sudo docker ps -a | less -S'"; \
+			echo "alias dstats='sudo docker stats $(sudo docker ps -a -q)'"; \
 		) | tee -a ${HOME}/.bashrc; \
 		echo ""; \
 		echo ""; \
