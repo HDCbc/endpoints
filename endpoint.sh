@@ -163,7 +163,7 @@ docker_gateway ()
 		"sudo docker run -d ${RUN_GATEWAY}"
 
 	# Populate providers.txt
-	[ -z ${DOCTOR_IDS}  \
+	[ -z ${DOCTOR_IDS} ]|| \
 		inform_exec "Populating providers.txt" \
 			"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 }
