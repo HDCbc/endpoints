@@ -142,6 +142,10 @@ docker_database ()
   		'printjson( db.records.ensureIndex({ hash_id : 1 }, { unique : true }))'"
 	}
 	fi
+
+	# Clean up collections
+	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.providers.drop()"
+	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.results.drop()"
 }
 
 
