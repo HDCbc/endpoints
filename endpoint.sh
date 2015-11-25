@@ -145,6 +145,7 @@ docker_database ()
 
 	# Clean up collections
 	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.providers.drop()"
+	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.queries.drop()"
 	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.results.drop()"
 }
 
