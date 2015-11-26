@@ -129,6 +129,25 @@ docker_database ()
 }
 
 
+# Run a new test gateway
+#
+docker_test_gateway ()
+{
+	# Update image and remove conatiner
+	sudo docker pull ${TEST_IMG_GATEWAY}
+	sudo docker rm -fv ${TEST_NAME_GATEWAY} || true
+
+	# Run a new container
+	inform_exec "Running test gateway" \
+		"sudo docker run -d ${TEST_RUN_GATEWAY}"
+
+	# Populate providers.txt
+	[ -z ${DOCTOR_IDS} ]|| \
+		inform_exec "Populating providers.txt" \
+			"sudo docker exec ${TEST_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+}
+
+
 # Run a new gateway and add populate providers.txt
 #
 docker_gateway ()
@@ -145,6 +164,11 @@ docker_gateway ()
 	[ -z ${DOCTOR_IDS} ]|| \
 		inform_exec "Populating providers.txt" \
 			"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+
+	# If opted-in, create test gateway
+	#
+	[ "${TEST_OPT_IN,,}" != "yes" ]|| \
+		docker_test_gateway
 }
 
 
