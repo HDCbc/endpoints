@@ -13,13 +13,20 @@ set -e -o nounset
 ################################################################################
 
 
-# Output rejection message and exit
+# Output usage help
 #
-inform_exit ()
+usage_help ()
 {
-	# Expects one error string
 	echo
-	echo $1
+	echo "This script creates Gateways in Docker containers"
+	echo
+	echo "Usage: ./endpoint.sh COMMAND [arguments]"
+	echo
+	echo "Commands:"
+	echo "	deploy      Run a new Gateway"
+	echo "	import      Import E2E using OSCAR and Plugins"
+	echo "	configure   Configures Docker, MongoDB and bash"
+	echo "	keygen      Run a keyholder for SSH keys"
 	echo
 	exit
 }
@@ -40,34 +47,6 @@ inform_exec ()
 		}
 	echo
 	echo
-}
-
-
-# Output usage instructions and quit
-#
-usage_error ()
-{
-	# Expects one usage string
-	inform_exit "Usage: ./endpoint.sh $1"
-}
-
-
-# Output usage help
-#
-usage_help ()
-{
-	echo
-	echo "This script creates Gateways in Docker containers"
-	echo
-	echo "Usage: ./endpoint.sh COMMAND [arguments]"
-	echo
-	echo "Commands:"
-	echo "	deploy      Run a new Gateway"
-	echo "	import      Import E2E using OSCAR and Plugins"
-	echo "	configure   Configures Docker, MongoDB and bash"
-	echo "	keygen      Run a keyholder for SSH keys"
-	echo
-	exit
 }
 
 
@@ -173,7 +152,6 @@ docker_gateway ()
 #
 docker_deploy ()
 {
-	docker_configure
 	docker_keygen
 	docker_database
 	docker_gateway
@@ -236,50 +214,6 @@ docker_configure ()
 	sudo chmod 755 /etc/rc.local
 
 
-	# Configure ~/.bashrc, if necessary
-	if(! grep --quiet 'function dockin()' ${HOME}/.bashrc )
-	then
-		( \
-			echo ''; \
-			echo '# Function to quickly enter containers'; \
-			echo '#'; \
-			echo 'function dockin()'; \
-			echo '{'; \
-			echo '  if [ $# -eq 0 ]'; \
-			echo '  then'; \
-			echo '		echo "Please pass a docker container to enter"'; \
-			echo '		echo "Usage: dockin [containerToEnter]"'; \
-			echo '	else'; \
-			echo '		sudo docker exec -it $1 /bin/bash'; \
-			echo '	fi'; \
-			echo '}'; \
-			echo ''; \
-			echo '# Function to remove stopped containers and untagged images'; \
-			echo '#'; \
-			echo 'function dclean()'; \
-			echo '{'; \
-			echo '  sudo docker rm $(sudo docker ps -a -q)'; \
-			echo "  sudo docker rmi $(sudo docker images | grep '^<none>' | awk '{print $3}')"; \
-			echo '}'; \
-			echo ''; \
-			echo '# Aliases to frequently used functions and applications'; \
-			echo '#'; \
-			echo "alias c='dockin'"; \
-			echo "alias d='sudo docker'"; \
-			echo "alias e='sudo docker exec'"; \
-			echo "alias i='sudo docker inspect'"; \
-			echo "alias l='sudo docker logs -f'"; \
-			echo "alias p='sudo docker ps -a'"; \
-			echo "alias s='sudo docker ps -a | less -S'"; \
-			echo "alias dstats='sudo docker stats $(sudo docker ps -a -q)'"; \
-		) | tee -a ${HOME}/.bashrc; \
-		echo ""; \
-		echo ""; \
-		echo "Please log in/out for changes to take effect!"; \
-		echo ""; \
-	fi
-
-
 	# Create OSP account
 	sudo mkdir -p /encrypted/docker/import
 	if(! grep --quiet 'OSP Export Account' /etc/passwd ); \
@@ -331,6 +265,50 @@ docker_configure ()
 }
 
 
+# Configure ~/.bashrc, if necessary
+if(! grep --quiet 'function dockin()' ${HOME}/.bashrc )
+then
+	( \
+		echo ''; \
+		echo '# Function to quickly enter containers'; \
+		echo '#'; \
+		echo 'function dockin()'; \
+		echo '{'; \
+		echo '  if [ $# -eq 0 ]'; \
+		echo '  then'; \
+		echo '		echo "Please pass a docker container to enter"'; \
+		echo '		echo "Usage: dockin [containerToEnter]"'; \
+		echo '	else'; \
+		echo '		sudo docker exec -it $1 /bin/bash'; \
+		echo '	fi'; \
+		echo '}'; \
+		echo ''; \
+		echo '# Function to remove stopped containers and untagged images'; \
+		echo '#'; \
+		echo 'function dclean()'; \
+		echo '{'; \
+		echo '  sudo docker rm $(sudo docker ps -a -q)'; \
+		echo "  sudo docker rmi $(sudo docker images | grep '^<none>' | awk '{print $3}')"; \
+		echo '}'; \
+		echo ''; \
+		echo '# Aliases to frequently used functions and applications'; \
+		echo '#'; \
+		echo "alias c='dockin'"; \
+		echo "alias d='sudo docker'"; \
+		echo "alias e='sudo docker exec'"; \
+		echo "alias i='sudo docker inspect'"; \
+		echo "alias l='sudo docker logs -f'"; \
+		echo "alias p='sudo docker ps -a'"; \
+		echo "alias s='sudo docker ps -a | less -S'"; \
+		echo "alias dstats='sudo docker stats $(sudo docker ps -a -q)'"; \
+	) | tee -a ${HOME}/.bashrc; \
+	echo ""; \
+	echo ""; \
+	echo "Please log in/out for changes to take effect!"; \
+	echo ""; \
+fi
+
+
 ################################################################################
 # Main - parameters and executions start here!
 ################################################################################
@@ -368,7 +346,3 @@ case "${COMMAND}" in
 	"keygen"      ) docker_keygen;;
 	*             ) usage_help;;
 esac
-
-echo
-echo "Done!  Please remember to source ~/.bashrc if changes were made."
-echo
