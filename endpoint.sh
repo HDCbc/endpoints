@@ -129,22 +129,55 @@ docker_database ()
 }
 
 
-# Run a new test gateway
+# Run new test gateways
 #
-docker_test_gateway ()
+docker_test ()
 {
-	# Update image and remove conatiner
-	sudo docker pull ${TEST_IMG_GATEWAY}
-	sudo docker rm -fv ${TEST_NAME_GATEWAY} || true
+	# Testing on master branch (not tagged)
+	#
+	[ -z ${TEST_MASTER_IP_HUB} ]|| \
+	{
+		# Update image and remove conatiner
+		sudo docker pull ${TEST_MASTER_IMG_GATEWAY}
+		sudo docker rm -fv ${TEST_MASTER_NAME_GATEWAY} || true
 
-	# Run a new container
-	inform_exec "Running test gateway" \
-		"sudo docker run -d ${TEST_RUN_GATEWAY}"
+		# Run a new container
+		inform_exec "Running test gateway" \
+			"sudo docker run -d ${TEST_MASTER_RUN_GATEWAY}"
 
-	# Populate providers.txt
-	[ -z ${DOCTOR_IDS} ]|| \
-		inform_exec "Populating providers.txt" \
-			"sudo docker exec ${TEST_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+		# Populate providers.txt
+		[ -z ${DOCTOR_IDS} ]|| \
+			inform_exec "Populating providers.txt" \
+				"sudo docker exec ${TEST_MASTER_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+
+		# Establish first connection to test hub
+		sudo docker exec -ti ${TEST_MASTER_NAME_GATEWAY} /bin/bash -c \
+			"/sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${TEST_MASTER_IP_HUB} -o StrictHostKeyChecking=no 'hostname; exit'"
+	}
+
+
+	# Testing on dev branch (not tagged)
+	#
+	[ -z ${TEST_DEV_IP_HUB} ]|| \
+	{
+		# Update image and remove conatiner
+		sudo docker pull ${TEST_DEV_IMG_GATEWAY}
+		sudo docker rm -fv ${TEST_DEV_NAME_GATEWAY} || true
+
+		# Run a new container
+		inform_exec "Running test gateway" \
+			"sudo docker run -d ${TEST_DEV_RUN_GATEWAY}"
+
+		# Populate providers.txt
+		[ -z ${DOCTOR_IDS} ]|| \
+			inform_exec "Populating providers.txt" \
+				"sudo docker exec ${TEST_DEV_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+
+
+		# Establish first connection to test hub
+		sudo docker exec -ti ${TEST_DEV_NAME_GATEWAY} /bin/bash -c \
+			"/sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${TEST_DEV_IP_HUB} -o StrictHostKeyChecking=no 'hostname; exit'"
+	}
 }
 
 
@@ -165,10 +198,10 @@ docker_gateway ()
 		inform_exec "Populating providers.txt" \
 			"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 
-	# If opted-in, create test gateway
+	# If opted-in, create test gateways
 	#
 	[ "${TEST_OPT_IN,,}" != "yes" ]|| \
-		docker_test_gateway
+		docker_test
 }
 
 
