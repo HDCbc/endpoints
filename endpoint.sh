@@ -24,9 +24,8 @@ usage_help ()
 	echo
 	echo "Commands:"
 	echo "	deploy      Run a new Gateway"
-	echo "	import      Import E2E using OSCAR and Plugins"
+	echo "	import      Import using OSCAR E2E and Plugins"
 	echo "	configure   Configures Docker, MongoDB and bash"
-	echo "	keygen      Run a keyholder for SSH keys"
 	echo
 	exit
 }
@@ -47,52 +46,6 @@ inform_exec ()
 		}
 	echo
 	echo
-}
-
-
-# Verify the status of id_rsa, id_rsa.pub and known_hosts
-#
-docker_keygen ()
-{
-	# Only create keyholder if necessary
-	STATUS_KEYHOLDER=$( sudo docker inspect -f {{.State.Running}} ${NAME_KEYHOLDER} ) || true
-	if( ${STATUS_KEYHOLDER} = "true" )
-	then
-		echo "NOTE: Updates should reuse existing ssh keys"
-	else
-	{
-		# Create data container for ssh details
-		inform_exec "Running keyholder" \
-			"sudo docker run -d ${RUN_KEYHOLDER}"
-
-		# Echo public key
-		echo
-		echo "New SSH files generated.  Please take note of the public key."
-		echo
-		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c \
-			'ssh-keygen -b 4096 -t rsa -N "" -C dkey${gID}-$(date +"%Y-%m-%d-%T") -f ~/.ssh/id_rsa'
-		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cat /root/.ssh/id_rsa.pub'
-		echo
-		echo
-
-		# Test the key, generating a known_hosts file, otherwise remove container
-		echo "Copy that key over, then press Enter to test it"
-		echo
-		read ENTER_TO_CONTINUE
-		sudo docker exec -ti ${NAME_KEYHOLDER} /bin/bash -c \
-			'ssh -p ${PORT_AUTOSSH} autossh@${IP_HUB} -o StrictHostKeyChecking=no "hostname; exit"'
-
-		# Copy files to expected location
-		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'mkdir -p /home/autossh/.ssh/'
-		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cp /root/.ssh/* /home/autossh/.ssh/'
-		sudo docker exec ${NAME_KEYHOLDER} /bin/bash -c 'cp /root/.ssh/* /home/autossh/.ssh/'
-		echo
-		echo
-		echo "Success!"
-		echo
-		echo
-	}
-	fi
 }
 
 
@@ -129,58 +82,6 @@ docker_database ()
 }
 
 
-# Run new test gateways
-#
-docker_test ()
-{
-	# Testing on master branch (not tagged)
-	#
-	[ -z ${TEST_MASTER_IP_HUB} ]|| \
-	{
-		# Update image and remove conatiner
-		sudo docker pull ${TEST_MASTER_IMG_GATEWAY}
-		sudo docker rm -fv ${TEST_MASTER_NAME_GATEWAY} || true
-
-		# Run a new container
-		inform_exec "Running test gateway" \
-			"sudo docker run -d ${TEST_MASTER_RUN_GATEWAY}"
-
-		# Populate providers.txt
-		[ -z ${DOCTOR_IDS} ]|| \
-			inform_exec "Populating providers.txt" \
-				"sudo docker exec ${TEST_MASTER_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
-
-		# Establish first connection to test hub
-		sudo docker exec -ti ${TEST_MASTER_NAME_GATEWAY} /bin/bash -c \
-			"/sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${TEST_MASTER_IP_HUB} -o StrictHostKeyChecking=no 'hostname; exit'"
-	}
-
-
-	# Testing on dev branch (not tagged)
-	#
-	[ -z ${TEST_DEV_IP_HUB} ]|| \
-	{
-		# Update image and remove conatiner
-		sudo docker pull ${TEST_DEV_IMG_GATEWAY}
-		sudo docker rm -fv ${TEST_DEV_NAME_GATEWAY} || true
-
-		# Run a new container
-		inform_exec "Running test gateway" \
-			"sudo docker run -d ${TEST_DEV_RUN_GATEWAY}"
-
-		# Populate providers.txt
-		[ -z ${DOCTOR_IDS} ]|| \
-			inform_exec "Populating providers.txt" \
-				"sudo docker exec ${TEST_DEV_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
-
-
-		# Establish first connection to test hub
-		sudo docker exec -ti ${TEST_DEV_NAME_GATEWAY} /bin/bash -c \
-			"/sbin/setuser autossh ssh -p ${PORT_AUTOSSH} autossh@${TEST_DEV_IP_HUB} -o StrictHostKeyChecking=no 'hostname; exit'"
-	}
-}
-
-
 # Run a new gateway and add populate providers.txt
 #
 docker_gateway ()
@@ -193,25 +94,65 @@ docker_gateway ()
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
-	# Populate providers.txt
-	[ -z ${DOCTOR_IDS} ]|| \
-		inform_exec "Populating providers.txt" \
-			"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+	# Configure SSH
+	inform_exec "Configuring SSH" \
+		"sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh"
 
-	# If opted-in, create test gateways
-	#
-	[ "${TEST_OPT_IN,,}" != "yes" ]|| \
-		docker_test
+	# Populate providers.txt
+	inform_exec "Populating providers.txt" \
+		"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 }
 
 
-# Run a gateway and database containers
+# Run new test gateways
+#
+docker_test ()
+{
+	# Update image and remove containers
+	sudo docker pull ${TEST_IMG_GATEWAY}
+	sudo docker rm -fv ${TEST_MASTER_NAME_GATEWAY} ${TEST_DEV_NAME_GATEWAY} || true
+
+	# Testing on master branch (not tagged)
+	[ -z ${TEST_MASTER_IP_HUB} ]|| \
+	{
+		# Run a new container
+		inform_exec "Running test gateway-master" \
+			"sudo docker run -d ${TEST_MASTER_RUN_GATEWAY}"
+
+		# Populate providers.txt
+		inform_exec "Populating providers.txt" \
+			"sudo docker exec ${TEST_MASTER_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+
+		# Configure SSH
+		inform_exec "Configuring SSH" \
+			"sudo docker exec -ti ${TEST_MASTER_NAME_GATEWAY} /app/ssh_config.sh"
+	}
+
+	# Testing on dev branch (not tagged)
+	[ -z ${TEST_DEV_IP_HUB} ]|| \
+	{
+		# Run a new container
+		inform_exec "Running test gateway-dev" \
+			"sudo docker run -d ${TEST_DEV_RUN_GATEWAY}"
+
+		# Populate providers.txt
+		inform_exec "Populating providers.txt" \
+			"sudo docker exec ${TEST_DEV_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+
+		# Configure SSH
+		inform_exec "Configuring SSH" \
+			"sudo docker exec -ti ${TEST_DEV_NAME_GATEWAY} /app/ssh_config.sh"
+	}
+}
+
+
+# Run a gateway and database containers, plus test if opted in
 #
 docker_deploy ()
 {
-	docker_keygen
 	docker_database
 	docker_gateway
+	[ "${TEST_OPT_IN,,}" != "yes" ]|| docker_test
 }
 
 
@@ -400,6 +341,5 @@ case "${COMMAND}" in
 	"deploy"      ) docker_deploy;;
 	"import"      ) docker_import;;
 	"configure"   ) docker_configure;;
-	"keygen"      ) docker_keygen;;
 	*             ) usage_help;;
 esac
