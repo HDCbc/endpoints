@@ -170,9 +170,6 @@ docker_import ()
 	# Run a new foreground container, removed when done (--rm)
 	inform_exec "Running OSCAR Exporter" \
 		"sudo docker run ${RUN_OSCAR} || true"
-
-	# Have Gateway sync any plugin files back to the Hub
-	sudo docker exec ${NAME_GATEWAY} /app/sync_hub.sh
 }
 
 
@@ -194,6 +191,7 @@ docker_configure ()
 	# Disable Transparent Hugepages for MongoDB, while running
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
 	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
+
 
 	# Disable Transparent Hugepage for MongoDB, after reboots
 	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local )
