@@ -82,29 +82,6 @@ docker_database ()
 }
 
 
-# Run a new gateway and add populate providers.txt
-#
-docker_gateway ()
-{
-	# Update image and remove conatiner
-	sudo docker pull ${IMG_GATEWAY}
-	sudo docker rm -fv ${NAME_GATEWAY} || true
-
-	# Run a new container
-	inform_exec "Running gateway" \
-		"sudo docker run -d ${RUN_GATEWAY}"
-
-	# Configure SSH, but fails without tty
-	[ "${COMMAND}" == "import" ]|| \
-		inform_exec "Configuring SSH" \
-			"sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh"
-
-	# Populate providers.txt
-	inform_exec "Populating providers.txt" \
-		"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
-}
-
-
 # Run new test gateways
 #
 docker_test ()
@@ -149,13 +126,38 @@ docker_test ()
 }
 
 
+# Run a new gateway and add populate providers.txt
+#
+docker_gateway ()
+{
+	# Update image and remove conatiner
+	sudo docker pull ${IMG_GATEWAY}
+	sudo docker rm -fv ${NAME_GATEWAY} || true
+
+	# Run a new container
+	inform_exec "Running gateway" \
+		"sudo docker run -d ${RUN_GATEWAY}"
+
+	# Configure SSH, but fails without tty
+	[ "${COMMAND}" == "import" ]|| \
+		inform_exec "Configuring SSH" \
+			"sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh"
+
+	# Populate providers.txt
+	inform_exec "Populating providers.txt" \
+		"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
+
+	# If in test group, then start test gateway(s)
+	[ "${TEST_OPT_IN,,}" != "yes" ]|| docker_test
+}
+
+
 # Run a gateway and database containers, plus test if opted in
 #
 docker_deploy ()
 {
 	docker_database
 	docker_gateway
-	[ "${TEST_OPT_IN,,}" != "yes" ]|| docker_test
 }
 
 
