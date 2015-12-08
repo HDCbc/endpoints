@@ -94,9 +94,10 @@ docker_gateway ()
 	inform_exec "Running gateway" \
 		"sudo docker run -d ${RUN_GATEWAY}"
 
-	# Configure SSH
-	inform_exec "Configuring SSH" \
-		"sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh"
+	# Configure SSH, but fails without tty
+	[ "${COMMAND}" == "import" ]|| \
+		inform_exec "Configuring SSH" \
+			"sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh"
 
 	# Populate providers.txt
 	inform_exec "Populating providers.txt" \
@@ -123,9 +124,10 @@ docker_test ()
 		inform_exec "Populating providers.txt" \
 			"sudo docker exec ${TEST_MASTER_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 
-		# Configure SSH
-		inform_exec "Configuring SSH" \
-			"sudo docker exec -ti ${TEST_MASTER_NAME_GATEWAY} /app/ssh_config.sh"
+		# Configure SSH, but fails without tty
+		[ "${COMMAND}" == "import" ]|| \
+			inform_exec "Configuring SSH" \
+				"sudo docker exec -ti ${TEST_MASTER_NAME_GATEWAY} /app/ssh_config.sh"
 	}
 
 	# Testing on dev branch (not tagged)
@@ -139,9 +141,10 @@ docker_test ()
 		inform_exec "Populating providers.txt" \
 			"sudo docker exec ${TEST_DEV_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
 
-		# Configure SSH
-		inform_exec "Configuring SSH" \
-			"sudo docker exec -ti ${TEST_DEV_NAME_GATEWAY} /app/ssh_config.sh"
+		# Configure SSH, but fails without tty
+		[ "${COMMAND}" == "import" ]|| \
+			inform_exec "Configuring SSH" \
+				"sudo docker exec -ti ${TEST_DEV_NAME_GATEWAY} /app/ssh_config.sh"
 	}
 }
 
