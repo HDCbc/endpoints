@@ -60,25 +60,14 @@ docker_database ()
 	else
 	{
 		# Update image and remove container, if stopped
-		sudo docker pull mongo
+		sudo docker pull ${IMG_DATABASE}
 		sudo docker rm ${NAME_DATABASE} || true
 
 		# Run a new container
 		inform_exec "Running database" \
-			"sudo docker run -d ${RUN_DATABASE}"
-
-		# Set index
-		sleep 5
-		sudo docker exec ${NAME_DATABASE} /bin/bash -c \
-			"mongo query_gateway_development --eval \
-  		'printjson( db.records.ensureIndex({ hash_id : 1 }, { unique : true }))'"
+			"sudo docker run -d ${RUN_DATABASE} ${IMG_DATABASE}"
 	}
 	fi
-
-	# Clean up collections
-	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.providers.drop()"
-	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.queries.drop()"
-	sudo docker exec ${NAME_DATABASE} mongo query_gateway_development --eval "db.results.drop()"
 }
 
 
@@ -95,7 +84,7 @@ docker_test ()
 	{
 		# Run a new container
 		inform_exec "Running test gateway-master" \
-			"sudo docker run -d ${TEST_MASTER_RUN_GATEWAY}"
+			"sudo docker run -d ${TEST_MASTER_RUN_GATEWAY} ${TEST_IMG_GATEWAY}"
 
 		# Populate providers.txt
 		inform_exec "Populating providers.txt" \
@@ -112,7 +101,7 @@ docker_test ()
 	{
 		# Run a new container
 		inform_exec "Running test gateway-dev" \
-			"sudo docker run -d ${TEST_DEV_RUN_GATEWAY}"
+			"sudo docker run -d ${TEST_DEV_RUN_GATEWAY} ${TEST_IMG_GATEWAY}"
 
 		# Populate providers.txt
 		inform_exec "Populating providers.txt" \
@@ -136,7 +125,7 @@ docker_gateway ()
 
 	# Run a new container
 	inform_exec "Running gateway" \
-		"sudo docker run -d ${RUN_GATEWAY}"
+		"sudo docker run -d ${RUN_GATEWAY} ${IMG_GATEWAY}"
 
 	# Configure SSH, but fails without tty
 	[ "${COMMAND}" == "import" ]|| \
@@ -174,7 +163,7 @@ docker_import ()
 
 	# Run a new foreground container, removed when done (--rm)
 	inform_exec "Running OSCAR Exporter" \
-		"sudo docker run ${RUN_OSCAR} || true"
+		"sudo docker run ${RUN_OSCAR} ${IMG_OSCAR} || true"
 }
 
 
@@ -330,12 +319,6 @@ source ${SCRIPT_DIR}/endpoint.env
 #
 [ "${DNS_DISABLE,,}" != "yes" ]|| \
 	export DOCKER_GATEWAY="${DOCKER_GATEWAY} --dns-search=."
-
-
-# If using RAM_REDUCE (,, = lowercase, bash 4+), then append to image options
-#
-[ "${RAM_REDUCE,,}" != "yes" ]|| \
-	${IMG_OPS_DATABASE}+=" ${IMG_OPS_DATABASE_LOWRAM}"
 
 
 # Run based on command
