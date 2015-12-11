@@ -23,130 +23,60 @@ usage_help ()
 	echo "Usage: ./endpoint.sh COMMAND [arguments]"
 	echo
 	echo "Commands:"
-	echo "	deploy      Run a new Gateway"
+	echo "	deploy      Run a Gateway and database"
 	echo "	import      Import using OSCAR E2E and Plugins"
-	echo "	configure   Configures Docker, MongoDB and bash"
+	echo "	configure   Configure Docker, MongoDB and bash"
 	echo
-	exit
 }
 
 
-# Output message and command, then execute command
+# Pull images and create containers, replacing if necessary
 #
-inform_exec ()
+docker_run ()
 {
-	# Expects a message and command
+	# Expects a name, run options and an image
+	NAME=$1
+	OPTS=$2
+	IMG=$3
+
+	# Pull and remove existing container
+	[ $( echo ${IMG} | grep local ) ]|| \
+		sudo docker pull ${IMG}
+	sudo docker rm -fv ${NAME} || true
+
+	# Notify and run new conatiner
 	echo
-	echo "*** ${1} *** ${2}"
+	echo "*** Running ${NAME} *** sudo docker run -d --name=${NAME} ${OPTS} ${IMG}"
 	echo
-	${2} || \
-		{
-			echo "${2} failed!"
-			exit
-		}
+	sudo docker run -d --name=${NAME} ${OPTS} ${IMG}
 	echo
 	echo
 }
 
 
-# Run a database and set the index (duplicates)
-#
-docker_database ()
-{
-	STATUS_DATABASE=$( sudo docker inspect -f {{.State.Running}} ${NAME_DATABASE} ) || true
-	if [ ${STATUS_DATABASE} ]
-	then
-		echo "NOTE: Reusing existing database"
-	else
-	{
-		# Update image and remove container, if stopped
-		sudo docker pull ${IMG_DATABASE}
-		sudo docker rm ${NAME_DATABASE} || true
-
-		# Run a new container
-		inform_exec "Running database" \
-			"sudo docker run -d ${RUN_DATABASE} ${IMG_DATABASE}"
-	}
-	fi
-}
-
-
-# Run new test gateways
-#
-docker_test ()
-{
-	# Update image and remove containers
-	sudo docker pull ${TEST_IMG_GATEWAY}
-	sudo docker rm -fv ${TEST_MASTER_NAME_GATEWAY} ${TEST_DEV_NAME_GATEWAY} || true
-
-	# Testing on master branch (not tagged)
-	[ -z ${TEST_MASTER_IP_HUB} ]|| \
-	{
-		# Run a new container
-		inform_exec "Running test gateway-master" \
-			"sudo docker run -d ${TEST_MASTER_RUN_GATEWAY} ${TEST_IMG_GATEWAY}"
-
-		# Populate providers.txt
-		inform_exec "Populating providers.txt" \
-			"sudo docker exec ${TEST_MASTER_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
-
-		# Configure SSH, but fails without tty
-		[ "${COMMAND}" == "import" ]|| \
-			inform_exec "Configuring SSH" \
-				"sudo docker exec -ti ${TEST_MASTER_NAME_GATEWAY} /app/ssh_config.sh"
-	}
-
-	# Testing on dev branch (not tagged)
-	[ -z ${TEST_DEV_IP_HUB} ]|| \
-	{
-		# Run a new container
-		inform_exec "Running test gateway-dev" \
-			"sudo docker run -d ${TEST_DEV_RUN_GATEWAY} ${TEST_IMG_GATEWAY}"
-
-		# Populate providers.txt
-		inform_exec "Populating providers.txt" \
-			"sudo docker exec ${TEST_DEV_NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
-
-		# Configure SSH, but fails without tty
-		[ "${COMMAND}" == "import" ]|| \
-			inform_exec "Configuring SSH" \
-				"sudo docker exec -ti ${TEST_DEV_NAME_GATEWAY} /app/ssh_config.sh"
-	}
-}
-
-
-# Run a new gateway and add populate providers.txt
-#
-docker_gateway ()
-{
-	# Update image and remove conatiner
-	sudo docker pull ${IMG_GATEWAY}
-	sudo docker rm -fv ${NAME_GATEWAY} || true
-
-	# Run a new container
-	inform_exec "Running gateway" \
-		"sudo docker run -d ${RUN_GATEWAY} ${IMG_GATEWAY}"
-
-	# Configure SSH, but fails without tty
-	[ "${COMMAND}" == "import" ]|| \
-		inform_exec "Configuring SSH" \
-			"sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh"
-
-	# Populate providers.txt
-	inform_exec "Populating providers.txt" \
-		"sudo docker exec ${NAME_GATEWAY} /app/providers.sh add ${DOCTOR_IDS}"
-
-	# If in test group, then start test gateway(s)
-	[ "${TEST_OPT_IN,,}" != "yes" ]|| docker_test
-}
-
-
-# Run a gateway and database containers, plus test if opted in
+# Run a new gateway
 #
 docker_deploy ()
 {
-	docker_database
-	docker_gateway
+	# Run database, if necessary
+	[ $( sudo docker inspect -f {{.State.Running}} ${NAME_DATABASE} ) ]|| \
+		docker_run ${NAME_DATABASE} "${RUN_DATABASE}" ${IMG_DATABASE}
+
+	# Run gateway
+	docker_run ${NAME_GATEWAY} "${RUN_GATEWAY}" ${IMG_GATEWAY}
+
+	# Configure SSH, but fails without tty (e.g. cron'd import)
+	[ "${COMMAND}" == "import" ]|| \
+		sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh
+
+	# If in test group, then start test gateway(s)
+	[ "${TEST_OPT_IN,,}" != "yes" ]|| \
+	{
+		docker_run ${MASTER_NAME_GATEWAY} "${MASTER_RUN_GATEWAY}" ${MASTER_IMG_GATEWAY}
+		docker_run ${DEV_NAME_GATEWAY} "${DEV_RUN_GATEWAY}" ${DEV_IMG_GATEWAY}
+		sudo docker exec -ti ${MASTER_NAME_GATEWAY} /app/ssh_config.sh || true
+		sudo docker exec -ti ${DEV_NAME_GATEWAY} /app/ssh_config.sh || true
+	}
 }
 
 
@@ -154,38 +84,96 @@ docker_deploy ()
 #
 docker_import ()
 {
-	# Redeploy Gateway container and ensure database is running
 	docker_deploy
-
-	# Update image and remove container, if present
-	sudo docker pull ${IMG_OSCAR}
-	sudo docker rm -fv ${NAME_OSCAR} || true
-
-	# Run a new foreground container, removed when done (--rm)
-	inform_exec "Running OSCAR Exporter" \
-		"sudo docker run ${RUN_OSCAR} ${IMG_OSCAR} || true"
+	docker_run ${NAME_OSCAR} "${RUN_OSCAR}" ${IMG_OSCAR}
 }
 
 
-docker_configure ()
+configure ()
 {
-	# Install Docker, if necessary
-	( which docker )|| \
+	# Configure ~/.bashrc, if necessary
+	if(! grep --quiet 'function dockin()' ${HOME}/.bashrc )
+	then
 		( \
-			sudo apt-get update
-			sudo apt-get install -y linux-image-extra-$(uname -r); \
-			sudo modprobe aufs; \
-			wget -qO- https://get.docker.com/ | sh; \
-		)
+			echo ""; \
+			echo "# Function to quickly enter containers"; \
+			echo "#"; \
+			echo "function c()"; \
+			echo "{"; \
+			echo "	sudo docker exec -it \$1 /bin/bash"; \
+			echo "}"; \
+			echo ""; \
+			echo "# Function to remove stopped containers and untagged images"; \
+			echo "#"; \
+			echo "function dclean()"; \
+			echo "{"; \
+			echo "  sudo docker rm \$( sudo docker ps -a -q )"; \
+			echo "  sudo docker rmi \$( sudo docker images | grep '^<none>' | awk '{print \$3}' )"; \
+			echo "}"; \
+			echo ""; \
+			echo "# Aliases to frequently used functions and applications"; \
+			echo "#"; \
+			echo "alias d='sudo docker'"; \
+			echo "alias i='sudo docker inspect'"; \
+			echo "alias l='sudo docker logs -f'"; \
+			echo "alias p='sudo docker ps -a'"; \
+			echo "alias s='sudo docker ps -a | less -S'"; \
+			echo "alias dstats='sudo docker stats \$( sudo docker ps -a -q )'"; \
+		) | tee -a ${HOME}/.bashrc; \
+		echo ""; \
+		echo ""; \
+		echo "Please log in/out for changes to take effect!"; \
+		echo ""; \
+	fi
+
+	# Create OSP account
+	sudo mkdir -p ${PATH_IMPORT}
+	if(! grep --quiet 'OSP Export Account' /etc/passwd )
+	then
+		sudo useradd -m -d ${PATH_IMPORT} -c "OSP Export Account" -s /bin/bash exporter
+	fi
+
+	# Create post-boot script (assumes /encrypted/ is encrypted)
+	START=${HOME}/ep-start.sh
+  ( \
+		echo '#!/bin/bash'; \
+		echo '#'; \
+		echo 'set -e -o nounset'; \
+		echo ''; \
+		echo ''; \
+		echo '# Decrypt /encrypted/'; \
+		echo '#'; \
+		echo '[ -s /encrypted/docker/endpoint.env ]|| \'; \
+    echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
+		echo ''; \
+		echo ''; \
+		echo '# Start Docker'; \
+		echo '#'; \
+		echo '[ $( pgrep -c docker ) -gt 0 ]|| \'; \
+    echo '	sudo service docker start'; \
+		echo ''; \
+		echo ''; \
+		echo '# Add static IP, if provided in env file'; \
+		echo '#'; \
+		echo '. '${SCRIPT_DIR}'/endpoint.env'; \
+		echo 'IP_STATIC=${IP_STATIC:-"."}'; \
+		echo '[ $( hostname -I )| grep ${IP_STATIC} ]|| \'; \
+		echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
+	) | tee ${START}; \
+	chmod +x ${START}
+
+	# Install Docker, if necessary
+	sudo apt-get update
+	sudo apt-get install -y linux-image-extra-$(uname -r)
+	sudo modprobe aufs
+	wget -qO- https://get.docker.com/ | sh
 
 	# Stop Docker from loading at boot
 	sudo sed -i '/![^#]/ s/\(^start on.*$\)/#\ \1/' /etc/init/docker.conf
 
-
 	# Disable Transparent Hugepages for MongoDB, while running
-	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled
-	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag
-
+	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null
+	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
 
 	# Disable Transparent Hugepage for MongoDB, after reboots
 	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local )
@@ -202,101 +190,7 @@ docker_configure ()
 		) | sudo tee -a /etc/rc.local; \
 	fi
 	sudo chmod 755 /etc/rc.local
-
-
-	# Create OSP account
-	sudo mkdir -p /encrypted/docker/import
-	if(! grep --quiet 'OSP Export Account' /etc/passwd ); \
-	then
-		sudo useradd -m -d /encrypted/docker/import -c "OSP Export Account" -s /bin/bash exporter
-	fi
-
-
-	# Create post-boot script (assumes /encrypted/ is encrypted)
-	START=${HOME}/ep-start.sh
-	if(! grep --quiet 'sudo service docker start' ${START} ); \
-	then \
-	  ( \
-			echo '#!/bin/bash'; \
-			echo '#'; \
-			echo 'set -e -o nounset'; \
-			echo ''; \
-			echo ''; \
-			echo '# Decrypt /encrypted/ and source the endpoint.env'; \
-			echo '#'; \
-			echo '[ -s /encrypted/docker/endpoint.env ]|| \'; \
-	    echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
-			echo '. /encrypted/docker/endpoint.env'; \
-			echo ''; \
-			echo ''; \
-			echo '# Start Docker'; \
-			echo '#'; \
-			echo '[ $(pgrep -c docker) -gt 0 ]|| \'; \
-	    echo '	sudo service docker start'; \
-			echo ''; \
-			echo ''; \
-			echo '# Add static IP, if provided in env file'; \
-			echo '#'; \
-			echo '${IP_STATIC:-""}'; \
-			echo '[ -z ${IP_STATIC} ]|| \'; \
-			echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
-			echo ''; \
-			echo ''; \
-			echo '# Record and log IPs (w/o Docker, loopback)'; \
-			echo '#'; \
-	    echo 'IP=$( hostname -I | \'; \
-	    echo "  sed 's/\(172.17.[0-9]*.[0-9]*\)//' | \\"; \
-	    echo "  sed 's/\(127.0.[0-9]*.[0-9]*\)//' \\"; \
-	    echo ')'; \
-	    echo 'echo ${IP} - $(date) >> ~/IP.log'; \
-		) | tee ${START}; \
-	fi
-	chmod +x ${START}
 }
-
-
-# Configure ~/.bashrc, if necessary
-if(! grep --quiet 'function dockin()' ${HOME}/.bashrc )
-then
-	( \
-		echo ''; \
-		echo '# Function to quickly enter containers'; \
-		echo '#'; \
-		echo 'function dockin()'; \
-		echo '{'; \
-		echo '  if [ $# -eq 0 ]'; \
-		echo '  then'; \
-		echo '		echo "Please pass a docker container to enter"'; \
-		echo '		echo "Usage: dockin [containerToEnter]"'; \
-		echo '	else'; \
-		echo '		sudo docker exec -it $1 /bin/bash'; \
-		echo '	fi'; \
-		echo '}'; \
-		echo ''; \
-		echo '# Function to remove stopped containers and untagged images'; \
-		echo '#'; \
-		echo 'function dclean()'; \
-		echo '{'; \
-		echo '  sudo docker rm $(sudo docker ps -a -q)'; \
-		echo "  sudo docker rmi $(sudo docker images | grep '^<none>' | awk '{print $3}')"; \
-		echo '}'; \
-		echo ''; \
-		echo '# Aliases to frequently used functions and applications'; \
-		echo '#'; \
-		echo "alias c='dockin'"; \
-		echo "alias d='sudo docker'"; \
-		echo "alias e='sudo docker exec'"; \
-		echo "alias i='sudo docker inspect'"; \
-		echo "alias l='sudo docker logs -f'"; \
-		echo "alias p='sudo docker ps -a'"; \
-		echo "alias s='sudo docker ps -a | less -S'"; \
-		echo "alias dstats='sudo docker stats $(sudo docker ps -a -q)'"; \
-	) | tee -a ${HOME}/.bashrc; \
-	echo ""; \
-	echo ""; \
-	echo "Please log in/out for changes to take effect!"; \
-	echo ""; \
-fi
 
 
 ################################################################################
@@ -318,7 +212,7 @@ source ${SCRIPT_DIR}/endpoint.env
 # If DNS is disabled (,, = lowercase, bash 4+), then use --dns-search=.
 #
 [ "${DNS_DISABLE,,}" != "yes" ]|| \
-	export DOCKER_GATEWAY="${DOCKER_GATEWAY} --dns-search=."
+	export RUN_GATEWAY="${RUN_GATEWAY} --dns-search=."
 
 
 # Run based on command
@@ -326,6 +220,6 @@ source ${SCRIPT_DIR}/endpoint.env
 case "${COMMAND}" in
 	"deploy"      ) docker_deploy;;
 	"import"      ) docker_import;;
-	"configure"   ) docker_configure;;
+	"configure"   ) configure;;
 	*             ) usage_help;;
 esac
