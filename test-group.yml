@@ -1,0 +1,38 @@
+# Docker Compose file for the PDC's Hub Stack
+#
+#
+# Used for collecting aggregate data queries.
+#
+# Use secondary .YML files for development and add -f YOUR.YML at execution.
+
+
+gateway-master:
+  container_name: gateway-master
+  hostname: gateway-master
+  image: pdcbc/gateway:latest
+  restart: always
+  log_driver: "json-file"
+  links:
+    - database:database
+  volumes:
+    - /encrypted/ssh/:/home/autossh/.ssh/:rw
+  environment:
+    - IP_COMPOSER=142.104.128.121
+  env_file:
+    - ./endpoint.env
+
+
+gateway-dev:
+  container_name: gateway-dev
+  hostname: gateway-dev
+  image: pdcbc/gateway:dev
+  restart: always
+  log_driver: "json-file"
+  links:
+    - database:database
+  volumes:
+    - /encrypted/ssh/:/home/autossh/.ssh/:rw
+  environment:
+    - IP_COMPOSER=142.104.128.122
+  env_file:
+    - ./endpoint.env
