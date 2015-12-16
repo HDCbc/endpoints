@@ -9,7 +9,7 @@ set -e -o nounset
 
 
 ################################################################################
-# Functions - must preceed execution
+# Functions
 ################################################################################
 
 
@@ -20,13 +20,42 @@ usage_help ()
 	echo
 	echo "This script creates Gateways in Docker containers"
 	echo
-	echo "Usage: ./endpoint.sh COMMAND [arguments]"
+	echo "Usage: ./endpoint.sh COMMAND"
 	echo
 	echo "Commands:"
 	echo "	deploy      Run a Gateway and database"
 	echo "	import      Import using OSCAR E2E and Plugins"
+	echo "	keygen      Test and create SSH keys"
 	echo "	configure   Configure Docker, MongoDB and bash"
 	echo
+}
+
+
+# Create SSH keys, if necessary
+#
+ssh_keygen ()
+{
+	# Optionally, specify an alternate IP to test against
+	SERVER=${1:-${IP_COMPOSER}}
+
+	echo
+	if [ ! -s ${PATH_SSH}/id_rsa ]
+	then
+	  ssh-keygen -b 4096 -t rsa -N "" -C ep${GATEWAY_ID}-$(date +%Y-%m-%d-%T) -f ${PATH_SSH}/id_rsa
+		echo "*** SSH keys created in ${PATH_SSH}. ***"
+	else
+		echo "*** Using SSH keys in ${PATH_SSH}. ***"
+	fi
+	echo
+	cat ${PATH_SSH}/id_rsa.pub
+	echo
+	echo "Please provide id_rsa.pub (above), a list of participating physicians,"
+	echo "their CPSIDs and all paperwork to the PDC at admin@pdcbc.ca."
+	echo
+	echo "*** Press ENTER to attempt connection to ${SERVER}. ***"
+	read -s ENTER_TO_CONTINUE
+	ssh -i ${PATH_SSH}/id_rsa -p ${PORT_AUTOSSH} autossh@${SERVER} \
+		-o UserKnownHostsFile=${PATH_SSH}/known_hosts /app/test/ssh_landing.sh
 }
 
 
@@ -39,10 +68,12 @@ docker_run ()
 	OPTS=$2
 	IMG=$3
 
-	# Pull and remove existing container
+	# Pull image
 	[ $( echo ${IMG} | grep local ) ]|| \
 		sudo docker pull ${IMG}
-	sudo docker rm -fv ${NAME} || true
+
+	# Remove previous container, if any
+	sudo docker rm -fv ${NAME} || true > /dev/null
 
 	# Notify and run new conatiner
 	echo
@@ -50,7 +81,17 @@ docker_run ()
 	echo
 	sudo docker run -d --name=${NAME} ${OPTS} ${IMG}
 	echo
-	echo
+}
+
+
+# Run test group gateways and test connections
+#
+docker_test ()
+{
+	docker_run ${MASTER_NAME_GATEWAY} "${MASTER_RUN_GATEWAY}" ${MASTER_IMG_GATEWAY}
+	docker_run ${DEV_NAME_GATEWAY} "${DEV_RUN_GATEWAY}" ${DEV_IMG_GATEWAY}
+	ssh -i ${PATH_SSH}/id_rsa -p ${PORT_AUTOSSH} autossh@${MASTER_IP_COMPOSER} /app/test/ssh_landing.sh
+	ssh -i ${PATH_SSH}/id_rsa -p ${PORT_AUTOSSH} autossh@${DEV_IP_COMPOSER} /app/test/ssh_landing.sh
 }
 
 
@@ -58,41 +99,44 @@ docker_run ()
 #
 docker_deploy ()
 {
-	# Run database, if necessary
+	# Run/reuse database
 	[ $( sudo docker inspect -f {{.State.Running}} ${NAME_DATABASE} ) ]|| \
 		docker_run ${NAME_DATABASE} "${RUN_DATABASE}" ${IMG_DATABASE}
 
-	# Run gateway
+	# Run/replace gateway
 	docker_run ${NAME_GATEWAY} "${RUN_GATEWAY}" ${IMG_GATEWAY}
-
-	# Configure SSH, but fails without tty (e.g. cron'd import)
-	[ "${COMMAND}" == "import" ]|| \
-		sudo docker exec -ti ${NAME_GATEWAY} /app/ssh_config.sh
 
 	# If in test group, then start test gateway(s)
 	[ "${TEST_OPT_IN,,}" != "yes" ]|| \
-	{
-		docker_run ${MASTER_NAME_GATEWAY} "${MASTER_RUN_GATEWAY}" ${MASTER_IMG_GATEWAY}
-		docker_run ${DEV_NAME_GATEWAY} "${DEV_RUN_GATEWAY}" ${DEV_IMG_GATEWAY}
-		sudo docker exec -ti ${MASTER_NAME_GATEWAY} /app/ssh_config.sh || true
-		sudo docker exec -ti ${DEV_NAME_GATEWAY} /app/ssh_config.sh || true
-	}
+		docker_test
+
+	# Verify SSH keys, creating if necessary
+	ssh_keygen
 }
 
 
-# Import an OSCAR SQL dump, containers not persistent
+# Import an OSCAR SQL dump, intended to be run on cron schedule
 #
 docker_import ()
 {
-	docker_deploy
+	# If using auto update, then update automatically
+	[ "${AUTO_UPDATE,,}" != "yes" ]|| \
+		docker_deploy
+
 	docker_run ${NAME_OSCAR} "${RUN_OSCAR}" ${IMG_OSCAR}
 }
 
 
-configure ()
+configure_docker ()
 {
+	# Install Docker
+	sudo apt-get update
+	sudo apt-get install -y linux-image-extra-$(uname -r)
+	sudo modprobe aufs
+	wget -qO- https://get.docker.com/ | sh
+
 	# Configure ~/.bashrc, if necessary
-	if(! grep --quiet 'function dockin()' ${HOME}/.bashrc )
+	if(! grep --quiet 'function dclean()' ${HOME}/.bashrc )
 	then
 		( \
 			echo ""; \
@@ -125,7 +169,37 @@ configure ()
 		echo "Please log in/out for changes to take effect!"; \
 		echo ""; \
 	fi
+}
 
+
+configure_mongo ()
+{
+	# Disable Transparent Hugepages for MongoDB, while running
+	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null
+	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
+
+	# Disable Transparent Hugepage for MongoDB, after reboots
+	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local )
+	then
+		sudo sed -i '/exit 0/d' /etc/rc.local; \
+		( \
+			echo ''; \
+			echo '# Disable Transparent Hugepage, for Mongo'; \
+			echo '#'; \
+			echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'; \
+			echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag'; \
+			echo ''; \
+			echo 'exit 0'; \
+		) | sudo tee -a /etc/rc.local; \
+	fi
+	sudo chmod 755 /etc/rc.local
+}
+
+
+# Configuration specific to PDC managed Endpoints
+#
+configure_pdc ()
+{
 	# Create OSP account
 	sudo mkdir -p ${PATH_IMPORT}
 	if(! grep --quiet 'OSP Export Account' /etc/passwd )
@@ -162,34 +236,16 @@ configure ()
 	) | tee ${START}; \
 	chmod +x ${START}
 
-	# Install Docker, if necessary
-	sudo apt-get update
-	sudo apt-get install -y linux-image-extra-$(uname -r)
-	sudo modprobe aufs
-	wget -qO- https://get.docker.com/ | sh
-
 	# Stop Docker from loading at boot
 	sudo sed -i '/![^#]/ s/\(^start on.*$\)/#\ \1/' /etc/init/docker.conf
+}
 
-	# Disable Transparent Hugepages for MongoDB, while running
-	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled > /dev/null
-	echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag > /dev/null
 
-	# Disable Transparent Hugepage for MongoDB, after reboots
-	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local )
-	then
-		sudo sed -i '/exit 0/d' /etc/rc.local; \
-		( \
-			echo ''; \
-			echo '# Disable Transparent Hugepage, for Mongo'; \
-			echo '#'; \
-			echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'; \
-			echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag'; \
-			echo ''; \
-			echo 'exit 0'; \
-		) | sudo tee -a /etc/rc.local; \
-	fi
-	sudo chmod 755 /etc/rc.local
+configure_all ()
+{
+	configure_docker
+	configure_mongo
+	configure_pdc
 }
 
 
@@ -220,6 +276,7 @@ source ${SCRIPT_DIR}/endpoint.env
 case "${COMMAND}" in
 	"deploy"      ) docker_deploy;;
 	"import"      ) docker_import;;
-	"configure"   ) configure;;
+	"keygen"      ) ssh_keygen;;
+	"configure"   ) configure_all;;
 	*             ) usage_help;;
 esac
