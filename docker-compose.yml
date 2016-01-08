@@ -9,34 +9,34 @@
 database:
   container_name: database
   hostname: database
-  image: pdcbc/gateway_db:prod
+  image: pdcbc/gateway_db:${TAG}
   restart: always
   log_driver: "syslog"
   volumes:
-    - /encrypted/mongo/:/data/db/:rw
+    - ${PATH_PRIVATE}/mongo/:/data/db/:rw
 
 
 gateway:
   container_name: gateway
   hostname: gateway
-  image: pdcbc/gateway:prod
+  image: pdcbc/gateway:${TAG}
   restart: always
   log_driver: "syslog"
   links:
     - database:database
   volumes:
-    - /encrypted/ssh/:/home/autossh/.ssh/:rw
-  environment:
-    - gID=50
-    - DOCTOR_IDS=cpsid
+    - ${PATH_PRIVATE}/ssh/:/home/autossh/.ssh/:rw
+  env_file:
+    - ./config.env
 
 
 oscar:
   container_name: oscar
   hostname: oscar
-  image: pdcbc/oscar_e2e:prod
+  image: pdcbc/oscar_e2e:${TAG}
+  restart: always
   log_driver: "syslog"
   links:
     - gateway:gateway
   volumes:
-    - /encrypted/import/:/e2e/
+    - ${PATH_PRIVATE}/import/:/e2e/:ro

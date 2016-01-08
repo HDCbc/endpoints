@@ -1,0 +1,43 @@
+# Development Docker Compose file for the PDC's Hub Stack
+#
+#
+# Settings here supplement and override those in the primary .YML file.
+# E.g.:
+#
+# container:
+#   build: /path/to/Dockerfile
+#   log_driver: "json-file"
+#   environment:
+#     - VARIABLE=value
+#
+# https://docs.docker.com/compose/compose-file/
+
+# Docker Compose file for the PDC's Hub Stack
+#
+#
+# Used for collecting aggregate data queries.
+#
+# Use secondary .YML files for development and add -f YOUR.YML at execution.
+
+
+database:
+  log_driver: "json-file"
+#  ports:
+#    - "27017:27017"
+  build: ./dev/gateway/database/
+
+
+gateway:
+  log_driver: "json-file"
+  ports:
+    - "3001:3001"
+  build: ./dev/gateway/
+#  environment:
+#    - IP_COMPOSER=142.104.128.120
+#    - PORT_AUTOSSH=2774
+#    - PORT_START_GATEWAY=40000
+
+
+oscar:
+  log_driver: "json-file"
+  build: ./dev/oscar/
