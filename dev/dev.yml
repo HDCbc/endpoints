@@ -22,22 +22,18 @@
 
 database:
   log_driver: "json-file"
-#  ports:
-#    - "27017:27017"
-  build: ./dev/gateway/database/
+  ports:
+    - "27017:27017"
+#  build: ./dev/gateway/database/
 
 
 gateway:
   log_driver: "json-file"
   ports:
     - "3001:3001"
-  build: ./dev/gateway/
-#  environment:
-#    - IP_COMPOSER=142.104.128.120
-#    - PORT_AUTOSSH=2774
-#    - PORT_START_GATEWAY=40000
+#  build: ./dev/gateway/
 
 
 oscar:
   log_driver: "json-file"
-  build: ./dev/oscar/
+#  build: ./dev/oscar/
