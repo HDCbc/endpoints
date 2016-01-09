@@ -13,7 +13,7 @@ database:
   restart: always
   log_driver: "syslog"
   volumes:
-    - ${PATH_PRIVATE}/mongo/:/data/db/:rw
+    - ${PATH_VOLUMES}/mongo/:/data/db/:rw
 
 
 gateway:
@@ -25,7 +25,7 @@ gateway:
   links:
     - database:database
   volumes:
-    - ${PATH_PRIVATE}/ssh/:/home/autossh/.ssh/:rw
+    - ${PATH_VOLUMES}/ssh/:/home/autossh/.ssh/:rw
   env_file:
     - ./config.env
 
@@ -39,4 +39,4 @@ oscar:
   links:
     - gateway:gateway
   volumes:
-    - ${PATH_PRIVATE}/import/:/e2e/:ro
+    - ${PATH_VOLUMES}/import/:/e2e/:ro

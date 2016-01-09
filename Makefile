@@ -13,9 +13,9 @@ deploy:
 		then \
 			TAG=${TAG:-prod}; \
 			set -e; \
-			sudo TAG=$(TAG) PATH_PRIVATE=${PATH_PRIVATE} docker-compose $(YML) pull; \
-			sudo TAG=$(TAG) PATH_PRIVATE=${PATH_PRIVATE} docker-compose $(YML) build; \
-			sudo TAG=$(TAG) PATH_PRIVATE=${PATH_PRIVATE} docker-compose $(YML) up -d; \
+			sudo TAG=$(TAG) PATH_VOLUMES=${PATH_VOLUMES} docker-compose $(YML) pull; \
+			sudo TAG=$(TAG) PATH_VOLUMES=${PATH_VOLUMES} docker-compose $(YML) build; \
+			sudo TAG=$(TAG) PATH_VOLUMES=${PATH_VOLUMES} docker-compose $(YML) up -d; \
 		else \
 			echo; \
 			echo "ERROR: Unable to connect to autossh@${IP_COMPOSER}."; \
@@ -89,9 +89,9 @@ include ./config.env
 #
 PORT_AUTOSSH ?= 2774
 IP_COMPOSER  ?= 142.104.128.120
-PATH_PRIVATE ?= /encrypted/
-PATH_IMPORT   = $(PATH_PRIVATE)/import/
-PATH_SSH      = $(PATH_PRIVATE)/ssh/
+PATH_VOLUMES ?= /encrypted/volumes
+PATH_IMPORT   = $(PATH_VOLUMES)/import/
+PATH_SSH      = $(PATH_VOLUMES)/ssh/
 
 
 # Default tag and moeeis prod, rename master to latest (~same)
