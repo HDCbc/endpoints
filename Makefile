@@ -96,7 +96,7 @@ PATH_SSH      = $(PATH_PRIVATE)/ssh/
 
 # Default tag and moeeis prod, rename master to latest (~same)
 #
-TAG ?= deploy
+TAG ?= prod
 ifeq ($(TAG),master)
 	TAG=latest
 endif
