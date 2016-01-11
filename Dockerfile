@@ -306,6 +306,7 @@ RUN SCRIPT=/ssh_test.sh; \
       echo ""; \
       echo "# Attempt to connect autossh tunnel and notify user"; \
       echo "#"; \
+      echo "sleep 5"; \
       echo "echo"; \
       echo "echo"; \
       echo "if [ \"\$( setuser autossh ssh -i /volumes/ssh/id_rsa -p 2774 142.104.128.120 /app/test/ssh_landing.sh )\" ]"; \
