@@ -12,30 +12,26 @@
 #   -e DOCTOR_IDS=11111,22222,...,99999
 #   pdcbc/endpoint
 #
-# Folder paths
-# - Volume set: -v </path/>:/volumes/
-#
-# Required variables
-# - Gateway ID: -e gID=####
-# - Doctor IDs: -e DOCTOR_IDS=#####,#####,...,#####
-#
 #
 FROM phusion/passenger-ruby19
 MAINTAINER derek.roberts@gmail.com
+
+
+# Release numbers
 #
-ENV TERM xterm
 ENV GATEWAY_REL 0.1.5
 ENV MONGO_MAJOR 3.0
 ENV MONGO_VERSION 3.0.7
 
 
-###############################################################################
+################################################################################
 # System and packages
 ################################################################################
 
 
 # Update system and packages
 #
+ENV TERM xterm
 ENV DEBIAN_FRONTEND noninteractive
 RUN echo 'deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main' \
       >> /etc/apt/sources.list.d/webupd8team-java-trusty.list; \
@@ -82,7 +78,7 @@ RUN mkdir -p \
       ${CATALINA_HOME}/shared/classes/
 
 
-###############################################################################
+################################################################################
 # Users and groups
 ################################################################################
 
@@ -93,7 +89,7 @@ RUN adduser --disabled-password --gecos '' --home /home/autossh autossh; \
     chown -R autossh:autossh /home/autossh
 
 
-###############################################################################
+################################################################################
 # Setup
 ################################################################################
 
@@ -125,9 +121,9 @@ RUN service mysql start; \
     mysqladmin -u root password superInsecure; \
     ./createdatabase_bc.sh root superInsecure oscar_12_1; \
     rm -rf \
+      /database/ \
       /tmp/* \
-      /var/tmp/* \
-      /database/
+      /var/tmp/*
 
 
 ################################################################################
@@ -139,25 +135,25 @@ RUN service mysql start; \
 #
 RUN SERVICE=mongod;\
     mkdir -p /etc/service/${SERVICE}/; \
-  	SCRIPT=/etc/service/${SERVICE}/run; \
+    SCRIPT=/etc/service/${SERVICE}/run; \
     ( \
       echo "#!/bin/bash"; \
-  		echo ""; \
-  		echo ""; \
-  		echo "# Start mongod"; \
-  		echo "#"; \
+      echo ""; \
+      echo ""; \
+      echo "# Start mongod"; \
+      echo "#"; \
       echo "mkdir -p /volumes/mongo/"; \
-  		echo "exec mongod --storageEngine wiredTiger --dbpath /volumes/mongo/"; \
+      echo "exec mongod --storageEngine wiredTiger --dbpath /volumes/mongo/"; \
     )  \
       >> ${SCRIPT}; \
-  	chmod +x ${SCRIPT}
+    chmod +x ${SCRIPT}
 
 
 # Startup - autossh tunnel
 #
 RUN SERVICE=autossh;\
     mkdir -p /etc/service/${SERVICE}/; \
-  	SCRIPT=/etc/service/${SERVICE}/run; \
+    SCRIPT=/etc/service/${SERVICE}/run; \
     ( \
       echo "#!/bin/bash"; \
       echo ""; \
@@ -172,7 +168,7 @@ RUN SERVICE=autossh;\
       echo "PORT_START_GATEWAY=\${PORT_START_GATEWAY:-40000}"; \
       echo "PORT_REMOTE=\`expr \${PORT_START_GATEWAY} + \${GATEWAY_ID}\`"; \
       echo "#"; \
-      echo "VOLUME_SSH=/volumes/ssh/"; \
+      echo "VOLUME_SSH=/volumes/ssh"; \
       echo ""; \
       echo ""; \
       echo "# Check for SSH keys"; \
@@ -210,7 +206,7 @@ RUN SERVICE=autossh;\
 #
 RUN SERVICE=autossh_test;\
     mkdir -p /etc/service/${SERVICE}/; \
-  	SCRIPT=/etc/service/${SERVICE}/run; \
+    SCRIPT=/etc/service/${SERVICE}/run; \
     ( \
       echo "#!/bin/bash"; \
       echo ""; \
@@ -245,14 +241,14 @@ RUN SERVICE=autossh_test;\
       echo "sleep 60"; \
     )  \
       >> ${SCRIPT}; \
-  	chmod +x ${SCRIPT}
+    chmod +x ${SCRIPT}
 
 
 # Startup - gateway delayed job
 #
 RUN SERVICE=delayed_job;\
     mkdir -p /etc/service/${SERVICE}/; \
-  	SCRIPT=/etc/service/${SERVICE}/run; \
+    SCRIPT=/etc/service/${SERVICE}/run; \
     ( \
       echo "#!/bin/bash"; \
       echo ""; \
@@ -272,7 +268,7 @@ RUN SERVICE=delayed_job;\
 #
 RUN SERVICE=rails;\
     mkdir -p /etc/service/${SERVICE}/; \
-  	SCRIPT=/etc/service/${SERVICE}/run; \
+    SCRIPT=/etc/service/${SERVICE}/run; \
     ( \
       echo "#!/bin/bash"; \
       echo ""; \
@@ -297,8 +293,37 @@ RUN SERVICE=rails;\
 
 
 ################################################################################
-# Cron scripts and crontab
+# Scripts and Crontab
 ################################################################################
+
+
+# SSH test
+#
+RUN SCRIPT=/ssh_test.sh; \
+    ( \
+      echo "#!/bin/bash"; \
+      echo ""; \
+      echo ""; \
+      echo "# Attempt to connect autossh tunnel and notify user"; \
+      echo "#"; \
+      echo "echo"; \
+      echo "echo"; \
+      echo "if [ \"\$( setuser autossh ssh -i /volumes/ssh/id_rsa -p 2774 142.104.128.120 /app/test/ssh_landing.sh )\" ]"; \
+      echo "then"; \
+      echo "  echo 'Connection successful!'"; \
+      echo "  echo"; \
+      echo "  echo ':D'"; \
+      echo "else"; \
+      echo "  cat /volumes/ssh/id_rsa.pub"; \
+      echo "  echo 'ERROR: unable to connect to 142.104.128.120'"; \
+      echo "  echo"; \
+      echo "  echo 'Please verify the ssh public key (above) has been provided to admin@pdcbc.ca.'"; \
+      echo "fi"; \
+      echo "echo"; \
+      echo "echo"; \
+    )  \
+      >> ${SCRIPT}; \
+    chmod +x ${SCRIPT}
 
 
 # Cron script - db maintenance
@@ -308,20 +333,20 @@ RUN SCRIPT=/db_maintenance.sh; \
       echo "#!/bin/bash"; \
       echo ""; \
       echo ""; \
-  		echo "# Wait for mongo to start"; \
+      echo "# Wait for mongo to start"; \
       echo "#"; \
       echo "while [ \$( pgrep -c mongod ) -eq 0 ]"; \
       echo "do"; \
-  		echo "	sleep 60"; \
-  		echo "done"; \
+      echo "  sleep 60"; \
+      echo "done"; \
       echo "sleep 5"; \
-  		echo ""; \
-  		echo ""; \
-  		echo "# Set index"; \
-  		echo "#"; \
-  		echo "/usr/bin/mongo query_gateway_development --eval 'printjson( db.records.ensureIndex({ hash_id : 1 }, { unique : true }))'"; \
-  		echo ""; \
-  		echo ""; \
+      echo ""; \
+      echo ""; \
+      echo "# Set index"; \
+      echo "#"; \
+      echo "/usr/bin/mongo query_gateway_development --eval 'printjson( db.records.ensureIndex({ hash_id : 1 }, { unique : true }))'"; \
+      echo ""; \
+      echo ""; \
       echo "# Database junk cleanup"; \
       echo "#"; \
       echo "/usr/bin/mongo query_gateway_development --eval 'db.providers.drop()'"; \
@@ -386,12 +411,12 @@ RUN SCRIPT=/run_export.sh; \
 #
 RUN ( \
       echo "# Run maintenance script (boot, Sundays at noon)"; \
-  		echo "@reboot /db_maintenance.sh"; \
+      echo "@reboot /db_maintenance.sh"; \
       echo "0 12 * * 0 /db_maintenance.sh"; \
       echo ""; \
       echo "# Run SQL/E2E import/export (boot, daily 3:30 AM PDT = 10:30 AM UTC)"; \
-			echo "@reboot /run_export.sh > /import.log"; \
-	    echo "30 10 * * * /run_export.sh"; \
+      echo "@reboot /run_export.sh > /import.log"; \
+      echo "30 10 * * * /run_export.sh"; \
     ) \
       | crontab -
 
@@ -403,15 +428,16 @@ RUN ( \
 
 # Volumes
 #
-RUN mkdir -p /data/db; \
-		chown -R mongodb:mongodb /data/db
 RUN mkdir -p \
       /volumes/import/ \
       /volumes/mongo/ \
-      /volumes/ssh/
+      /volumes/ssh/; \
+    chown -R mongodb:mongodb /volumes/mongo/; \
+    chown -R autossh:autossh /volumes/ssh/
 VOLUME /volumes/
 
 
-# Run initialization command
+# Initialize
 #
+WORKDIR /
 CMD ["/sbin/my_init"]
