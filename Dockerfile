@@ -20,8 +20,8 @@ MAINTAINER derek.roberts@gmail.com
 # Release numbers
 #
 ENV GATEWAY_REL 0.1.5
-ENV MONGO_MAJOR 3.0
-ENV MONGO_VERSION 3.0.7
+ENV MONGO_MAJOR 3.2
+ENV MONGO_VERSION 3.2.0
 
 
 ################################################################################
@@ -38,7 +38,7 @@ RUN echo 'deb http://ppa.launchpad.net/webupd8team/java/ubuntu trusty main' \
     apt-key adv --keyserver keyserver.ubuntu.com --recv-keys EEA14886; \
     echo oracle-java6-installer shared/accepted-oracle-license-v1-1 \
       select true | /usr/bin/debconf-set-selections; \
-    apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 492EAFE8CD016A07919F1D2B9ECBEC467F0CEB10; \
+    apt-key adv --keyserver ha.pool.sks-keyservers.net --recv-keys 42F3E95A2C4F08279C4960ADD68FA50FEA312927; \
     	echo "deb http://repo.mongodb.org/apt/ubuntu trusty/mongodb-org/$MONGO_MAJOR multiverse" > /etc/apt/sources.list.d/mongodb-org.list; \
     apt-get update; \
     apt-get install --no-install-recommends -y \
@@ -85,8 +85,9 @@ RUN mkdir -p \
 
 # AutoSSH user
 #
-RUN adduser --disabled-password --gecos '' --home /home/autossh autossh; \
-    chown -R autossh:autossh /home/autossh
+RUN WHO=autossh
+      adduser --disabled-password --gecos '' --home /home/${WHO} ${WHO}; \
+      chown -R ${WHO}:${WHO} /home/${WHO}
 
 
 ################################################################################
@@ -404,7 +405,7 @@ RUN SCRIPT=/run_export.sh; \
       echo "#"; \
       echo "mysql --user=root --password=superInsecure -e 'drop database oscar_12_1;'"; \
     )  \
-    >> ${SCRIPT}; \
+      >> ${SCRIPT}; \
     chmod +x ${SCRIPT}
 
 
