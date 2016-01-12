@@ -11,7 +11,8 @@ deploy:
 		sudo docker pull ${DOCKER_IMAGE}
 		sudo docker stop ${DOCKER_NAME} || true
 		sudo docker rm ${DOCKER_NAME} || true
-		sudo docker run -d --name=${DOCKER_NAME} --restart=always -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
+		sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
+			-v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
 		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
 
@@ -19,7 +20,8 @@ deploy:
 dev:
 		sudo docker rm -fv ${DOCKER_NAME}
 		sudo docker build -t local/endpoint .
-		sudo docker run -d --name=${DOCKER_NAME} --restart=always -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env local/endpoint
+		sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
+			-v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env local/endpoint
 		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
 
