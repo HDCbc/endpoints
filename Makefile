@@ -18,7 +18,7 @@ deploy:
 
 # Build image, deploy container (using config) and test ssh
 dev:
-		sudo docker rm -fv ${DOCKER_NAME}
+		sudo docker rm -fv ${DOCKER_NAME} || true
 		sudo docker build -t local/endpoint .
 		sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
 			-v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env local/endpoint
