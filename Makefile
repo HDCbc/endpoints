@@ -8,19 +8,19 @@ endpoint: pdc-user pdc-start
 
 # Pull image, deploy container (using config) and test ssh
 deploy:
-		sudo docker pull pdcbc/endpoint_oscar:prod
-		sudo docker stop endpoint || true
-		sudo docker rm endpoint || true
-		sudo docker run -d --name=endpoint --restart=always -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env pdcbc/endpoint_oscar:prod
-		sudo docker exec endpoint /ssh_test.sh
+		sudo docker pull ${DOCKER_IMAGE}
+		sudo docker stop ${DOCKER_NAME} || true
+		sudo docker rm ${DOCKER_NAME} || true
+		sudo docker run -d --name=${DOCKER_NAME} --restart=always -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
+		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
 
 # Build image, deploy container (using config) and test ssh
 dev:
-		sudo docker rm -fv endpoint
+		sudo docker rm -fv ${DOCKER_NAME}
 		sudo docker build -t local/endpoint .
-		sudo docker run -d --name=endpoint --restart=always -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env local/endpoint
-		sudo docker exec endpoint /ssh_test.sh
+		sudo docker run -d --name=${DOCKER_NAME} --restart=always -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env local/endpoint
+		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
 
 # Run PDC-standard Docker setup
@@ -86,9 +86,10 @@ pdc-start:
 #
 include ./config.env
 #
-PORT_AUTOSSH ?= 2774
-IP_COMPOSER  ?= 142.104.128.120
-PATH_VOLUMES ?= /encrypted/volumes
-PATH_IMPORT   = $(PATH_VOLUMES)/import/
-PATH_SSH      = $(PATH_VOLUMES)/ssh/
-
+DOCKER_IMAGE  ?= pdcbc/endpoint_oscar:prod
+DOCKER_NAME   ?= endpoint
+IP_COMPOSER   ?= 142.104.128.120
+PORT_AUTOSSH  ?= 2774
+PATH_VOLUMES  ?= /encrypted/volumes
+PATH_IMPORT    = $(PATH_VOLUMES)/import/
+PATH_SSH       = $(PATH_VOLUMES)/ssh/
