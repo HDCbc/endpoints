@@ -44,13 +44,13 @@ ssh:
 # Create import user, for PDC-managed endpoints
 pdc-user:
 	@	sudo mkdir -p ${PATH_IMPORT}
-	@	[ $$(getent passwd import) ]|| \
+	@	[ "$$( getent passwd exporter )" ]|| \
 			sudo useradd -m -d ${PATH_IMPORT} -c "OSP Export Account" -s /bin/bash exporter
 
 # Create start script and defer Docker load, for PDC-managed endpoints
 pdc-start:
-	@	sudo sed -i '/![^#]/ s/\(^start on.*$\)/#\ \1/' /etc/init/docker.conf
-	@	START=${HOME}/ep-start.sh; \
+	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
+	@	START=$${HOME}/ep-start.sh; \
 	  ( \
 			echo '#!/bin/bash'; \
 			echo '#'; \
@@ -65,18 +65,18 @@ pdc-start:
 			echo ''; \
 			echo '# Start Docker'; \
 			echo '#'; \
-			echo '[ $( pgrep -c docker ) -gt 0 ]|| \'; \
+			echo '[ $$( pgrep -c docker ) -gt 0 ]|| \'; \
 	    echo '	sudo service docker start'; \
 			echo ''; \
 			echo ''; \
 			echo '# Add static IP, if provided in env file'; \
 			echo '#'; \
-			echo '. '${SCRIPT_DIR}'/config.env'; \
-			echo 'IP_STATIC=${IP_STATIC:-"."}'; \
-			echo '[ $( hostname -I )| grep ${IP_STATIC} ]|| \'; \
-			echo '	sudo ip addr add ${IP_STATIC} dev em1'; \
-		) | tee ${START}; \
-		chmod +x ${START}
+			echo '. '$${HOME}'/config.env'; \
+			echo 'IP_STATIC=$${IP_STATIC:-"."}'; \
+			echo '[ $$( hostname -I )| grep $${IP_STATIC} ]|| \'; \
+			echo '	sudo ip addr add $${IP_STATIC} dev em1'; \
+		) | tee $${START}; \
+		chmod +x $${START}
 
 
 #############
