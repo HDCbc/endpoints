@@ -420,9 +420,9 @@ RUN ( \
       echo "@reboot /db_maintenance.sh"; \
       echo "0 12 * * 0 /db_maintenance.sh"; \
       echo ""; \
-      echo "# Run SQL/E2E import/export (boot, daily 3:30 AM PDT = 10:30 AM UTC)"; \
+      echo "# Run SQL/E2E import/export (boot, daily 3:30 PST = 4:30 PDT = 11:30 UTC)"; \
       echo "@reboot /run_export.sh > /import.log"; \
-      echo "30 10 * * * /run_export.sh > /import.log"; \
+      echo "30 11 * * * /run_export.sh > /import.log"; \
     ) \
       | crontab -
 
