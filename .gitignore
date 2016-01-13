@@ -9,6 +9,7 @@
 *.sh
 .directory
 dev/*/
+dev/Dockerfile
 
 ########################
 ### GitHub Suggested ###
