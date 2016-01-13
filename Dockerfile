@@ -85,9 +85,9 @@ RUN mkdir -p \
 
 # AutoSSH user
 #
-RUN WHO=autossh
-      adduser --disabled-password --gecos '' --home /home/${WHO} ${WHO}; \
-      chown -R ${WHO}:${WHO} /home/${WHO}
+RUN USER=autossh; \
+    adduser --disabled-password --gecos '' --home /home/${USER} ${USER}; \
+    chown -R ${USER}:${USER} /home/${USER}
 
 
 ################################################################################
@@ -98,8 +98,8 @@ RUN WHO=autossh
 # Prepare /gateway/ folder
 #
 WORKDIR /gateway/
-RUN git clone https://github.com/pdcbc/gateway.git . -b ${GATEWAY_REL}
-RUN mkdir -p ./tmp/pids ./util/files; \
+RUN git clone https://github.com/pdcbc/gateway.git . -b ${GATEWAY_REL}; \
+    mkdir -p ./tmp/pids ./util/files; \
     gem install multipart-post; \
     chown -R app:app /gateway/; \
     /sbin/setuser app bundle install --path vendor/bundle
@@ -107,11 +107,11 @@ RUN mkdir -p ./tmp/pids ./util/files; \
 
 # OSCAR 12 WebARchive (.war) and properties
 #
+COPY ./oscar/oscar12.properties /usr/share/tomcat6/
 WORKDIR ${CATALINA_BASE}/webapps/
 COPY ./oscar/oscar12.war.* ./
 RUN cat oscar12.war.* > oscar12.war; \
     rm oscar12.war.*
-COPY ./oscar/oscar12.properties /usr/share/tomcat6/
 
 
 # Start MySQL and create database
@@ -152,7 +152,7 @@ RUN SERVICE=mongod;\
 
 # Startup - autossh tunnel
 #
-RUN SERVICE=autossh;\
+RUN SERVICE=autossh_prod;\
     mkdir -p /etc/service/${SERVICE}/; \
     SCRIPT=/etc/service/${SERVICE}/run; \
     ( \
@@ -222,7 +222,7 @@ RUN SERVICE=autossh_test;\
       echo "PORT_START_GATEWAY=\${PORT_START_GATEWAY:-40000}"; \
       echo "PORT_REMOTE=\`expr \${PORT_START_GATEWAY} + \${GATEWAY_ID}\`"; \
       echo "#"; \
-      echo "VOLUME_SSH=/volumes/ssh/"; \
+      echo "VOLUME_SSH=/volumes/ssh"; \
       echo ""; \
       echo ""; \
       echo "# Start tunnels"; \
