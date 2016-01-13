@@ -6,22 +6,13 @@ default: configure deploy
 
 endpoint: pdc-user pdc-start
 
-# Pull image, deploy container (using config) and test ssh
+# Pull or build (dev) image, deploy container and test ssh
 deploy:
-		sudo docker pull ${DOCKER_IMAGE}
 		sudo docker stop ${DOCKER_NAME} || true
 		sudo docker rm ${DOCKER_NAME} || true
+		sudo docker ${SOURCE_IMAGE}
 		sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
 			-v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
-		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
-
-
-# Build image, deploy container (using config) and test ssh
-dev:
-		sudo docker rm -fv ${DOCKER_NAME} || true
-		sudo docker build -t local/endpoint .
-		sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
-			-v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env local/endpoint
 		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
 
@@ -95,3 +86,13 @@ PORT_AUTOSSH  ?= 2774
 PATH_VOLUMES  ?= /encrypted/volumes
 PATH_IMPORT    = $(PATH_VOLUMES)/import/
 PATH_SSH       = $(PATH_VOLUMES)/ssh/
+
+
+# Pull (prod) or build (dev) image
+#
+MODE          ?= prod
+SOURCE_IMAGE  ?= pull $(DOCKER_IMAGE)
+ifeq ($(MODE),dev)
+	DOCKER_IMAGE = local/endpoint
+	SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./dev/
+endif
