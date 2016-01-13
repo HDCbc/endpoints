@@ -1,0 +1,42 @@
+# Docker Compose file for the PDC's Hub Stack
+#
+#
+# Used for collecting aggregate data queries.
+#
+# Use secondary .YML files for development and add -f YOUR.YML at execution.
+
+
+database:
+  container_name: database
+  hostname: database
+  image: pdcbc/gateway_db:${TAG}
+  restart: always
+  log_driver: "syslog"
+  volumes:
+    - ${PATH_VOLUMES}/mongo/:/data/db/:rw
+
+
+gateway:
+  container_name: gateway
+  hostname: gateway
+  image: pdcbc/gateway:${TAG}
+  restart: always
+  log_driver: "syslog"
+  links:
+    - database:database
+  volumes:
+    - ${PATH_VOLUMES}/ssh/:/home/autossh/.ssh/:rw
+  env_file:
+    - ./config.env
+
+
+oscar:
+  container_name: oscar
+  hostname: oscar
+  image: pdcbc/oscar_e2e:${TAG}
+  restart: always
+  log_driver: "syslog"
+  links:
+    - gateway:gateway
+  volumes:
+    - ${PATH_VOLUMES}/import/:/e2e/:ro
