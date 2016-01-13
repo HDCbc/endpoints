@@ -8,12 +8,12 @@ endpoint: pdc-user pdc-start
 
 # Pull or build (dev) image, deploy container and test ssh
 deploy:
-		sudo docker stop ${DOCKER_NAME} || true
-		sudo docker rm ${DOCKER_NAME} || true
-		sudo docker ${SOURCE_IMAGE}
-		sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
-			-v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
-		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
+	@	sudo docker stop ${DOCKER_NAME} || true
+	@	sudo docker rm ${DOCKER_NAME} || true
+	@	sudo docker ${SOURCE_IMAGE}
+	@	sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
+		  -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
+	@	sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
 
 # Run PDC-standard Docker setup
@@ -36,37 +36,37 @@ ssh:
 pdc-user:
 	@	sudo mkdir -p ${PATH_IMPORT}
 	@	[ "$$( getent passwd exporter )" ]|| \
-			sudo useradd -m -d ${PATH_IMPORT} -c "OSP Export Account" -s /bin/bash exporter
+		  sudo useradd -m -d ${PATH_IMPORT} -c "OSP Export Account" -s /bin/bash exporter
 
 
 # Create start script and defer Docker load, for PDC-managed endpoints
 pdc-start:
 	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
 	@	START=$${HOME}/ep-start.sh; \
-	  ( \
-			echo '#!/bin/bash'; \
-			echo '#'; \
-			echo 'set -e -o nounset'; \
-			echo ''; \
-			echo ''; \
-			echo '# Decrypt /encrypted/'; \
-			echo '#'; \
-			echo '[ -s /encrypted/docker/config.env ]|| \'; \
-	    echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
-			echo ''; \
-			echo ''; \
-			echo '# Start Docker'; \
-			echo '#'; \
-			echo '[ $$( pgrep -c docker ) -gt 0 ]|| \'; \
-	    echo '	sudo service docker start'; \
-			echo ''; \
-			echo ''; \
-			echo '# Add static IP, if provided in env file'; \
-			echo '#'; \
-			echo '. '$${HOME}'/config.env'; \
-			echo 'IP_STATIC=$${IP_STATIC:-"."}'; \
-			echo '[ $$( hostname -I )| grep $${IP_STATIC} ]|| \'; \
-			echo '	sudo ip addr add $${IP_STATIC} dev em1'; \
+		( \
+		  echo '#!/bin/bash'; \
+		  echo '#'; \
+		  echo 'set -e -o nounset'; \
+		  echo ''; \
+		  echo ''; \
+		  echo '# Decrypt /encrypted/'; \
+		  echo '#'; \
+		  echo '[ -s /encrypted/docker/config.env ]|| \'; \
+		  echo '	sudo /usr/bin/encfs --public /.encrypted /encrypted'; \
+		  echo ''; \
+		  echo ''; \
+		  echo '# Start Docker'; \
+		  echo '#'; \
+		  echo '[ $$( pgrep -c docker ) -gt 0 ]|| \'; \
+		  echo '	sudo service docker start'; \
+		  echo ''; \
+		  echo ''; \
+		  echo '# Add static IP, if provided in env file'; \
+		  echo '#'; \
+		  echo '. '$${HOME}'/config.env'; \
+		  echo 'IP_STATIC=$${IP_STATIC:-"."}'; \
+		  echo '[ $$( hostname -I )| grep $${IP_STATIC} ]|| \'; \
+		  echo '	sudo ip addr add $${IP_STATIC} dev em1'; \
 		) | tee $${START}; \
 		chmod +x $${START}
 
@@ -93,6 +93,6 @@ PATH_SSH       = $(PATH_VOLUMES)/ssh/
 MODE          ?= prod
 SOURCE_IMAGE  ?= pull $(DOCKER_IMAGE)
 ifeq ($(MODE),dev)
-	DOCKER_IMAGE = local/endpoint
-	SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./dev/
+  DOCKER_IMAGE = local/endpoint
+  SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./dev/
 endif
