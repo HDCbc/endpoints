@@ -385,11 +385,15 @@ RUN SCRIPT=/run_export.sh; \
       echo "service mysql start"; \
       echo "mysql --user=root --password=superInsecure -e 'drop database oscar_12_1;'"; \
       echo "mysql --user=root --password=superInsecure -e 'create database oscar_12_1;'"; \
+      echo "mysql --user=root --password=superInsecure -e 'set autocommit=0;'"; \
+      echo "mysql --user=root --password=superInsecure -e 'set unique_checks=0;'"; \
+      echo "mysql --user=root --password=superInsecure -e 'set foreign_key_checks=0;'"; \
       echo 'find /volumes/import/ -name "*.sql" | \'; \
       echo "  while read IN"; \
       echo "  do"; \
       echo '    mysql --user=root --password=superInsecure oscar_12_1 < "${IN}"'; \
       echo "  done"; \
+      echo "mysql --user=root --password=superInsecure -e 'commit;'"; \
       echo ""; \
       echo ""; \
       echo "# Start Tomcat6"; \
@@ -418,7 +422,7 @@ RUN ( \
       echo ""; \
       echo "# Run SQL/E2E import/export (boot, daily 3:30 AM PDT = 10:30 AM UTC)"; \
       echo "@reboot /run_export.sh > /import.log"; \
-      echo "30 10 * * * /run_export.sh"; \
+      echo "30 10 * * * /run_export.sh > /import.log"; \
     ) \
       | crontab -
 
