@@ -6,23 +6,14 @@ default: configure deploy
 
 endpoint: pdc-user pdc-start
 
-# Check ssh keys, then pull build and deploy using docker compose
+# Pull or build (dev) image, deploy container and test ssh
 deploy:
-	@	if [ "$$( sudo ssh -i ${PATH_SSH}/id_rsa -p ${PORT_AUTOSSH} autossh@${IP_COMPOSER} \
-				-o UserKnownHostsFile=${PATH_SSH}/known_hosts /app/test/ssh_landing.sh )" ]; \
-		then \
-			TAG=${TAG:-prod}; \
-			set -e; \
-			sudo TAG=$(TAG) PATH_VOLUMES=${PATH_VOLUMES} docker-compose $(YML) pull; \
-			sudo TAG=$(TAG) PATH_VOLUMES=${PATH_VOLUMES} docker-compose $(YML) build; \
-			sudo TAG=$(TAG) PATH_VOLUMES=${PATH_VOLUMES} docker-compose $(YML) up -d; \
-		else \
-			echo; \
-			echo "ERROR: Unable to connect to autossh@${IP_COMPOSER}."; \
-			echo; \
-			echo "Create/configure keys in ${PATH_SSH} or run 'make ssh'."; \
-			echo; \
-		fi
+		sudo docker stop ${DOCKER_NAME} || true
+		sudo docker rm ${DOCKER_NAME} || true
+		sudo docker ${SOURCE_IMAGE}
+		sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
+			-v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
+		sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
 
 # Run PDC-standard Docker setup
@@ -46,6 +37,7 @@ pdc-user:
 	@	sudo mkdir -p ${PATH_IMPORT}
 	@	[ "$$( getent passwd exporter )" ]|| \
 			sudo useradd -m -d ${PATH_IMPORT} -c "OSP Export Account" -s /bin/bash exporter
+
 
 # Create start script and defer Docker load, for PDC-managed endpoints
 pdc-start:
@@ -87,24 +79,20 @@ pdc-start:
 #
 include ./config.env
 #
-PORT_AUTOSSH ?= 2774
-IP_COMPOSER  ?= 142.104.128.120
-PATH_VOLUMES ?= /encrypted/volumes
-PATH_IMPORT   = $(PATH_VOLUMES)/import/
-PATH_SSH      = $(PATH_VOLUMES)/ssh/
+DOCKER_IMAGE  ?= pdcbc/endpoint_oscar:prod
+DOCKER_NAME   ?= endpoint
+IP_COMPOSER   ?= 142.104.128.120
+PORT_AUTOSSH  ?= 2774
+PATH_VOLUMES  ?= /encrypted/volumes
+PATH_IMPORT    = $(PATH_VOLUMES)/import/
+PATH_SSH       = $(PATH_VOLUMES)/ssh/
 
 
-# Default tag and moeeis prod, rename master to latest (~same)
+# Pull (prod) or build (dev) image
 #
-TAG ?= prod
-ifeq ($(TAG),master)
-	TAG=latest
-endif
-
-
-# Set .YML files
-#
-YML=-f ./docker-compose.yml
+MODE          ?= prod
+SOURCE_IMAGE  ?= pull $(DOCKER_IMAGE)
 ifeq ($(MODE),dev)
-	YML+= -f ./dev/dev.yml
+	DOCKER_IMAGE = local/endpoint
+	SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./dev/
 endif
