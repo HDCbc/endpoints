@@ -8,8 +8,7 @@
 *.sql
 *.sh
 .directory
-dev/*/
-dev/Dockerfile
+endpoint_oscar/
 
 ########################
 ### GitHub Suggested ###

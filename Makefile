@@ -81,8 +81,6 @@ include ./config.env
 #
 DOCKER_IMAGE  ?= pdcbc/endpoint_oscar:prod
 DOCKER_NAME   ?= endpoint
-IP_COMPOSER   ?= 142.104.128.120
-PORT_AUTOSSH  ?= 2774
 PATH_VOLUMES  ?= /encrypted/volumes
 PATH_IMPORT    = $(PATH_VOLUMES)/import/
 PATH_SSH       = $(PATH_VOLUMES)/ssh/
@@ -94,5 +92,5 @@ MODE          ?= prod
 SOURCE_IMAGE  ?= pull $(DOCKER_IMAGE)
 ifeq ($(MODE),dev)
   DOCKER_IMAGE = local/endpoint
-  SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./dev/
+  SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./endpoint_oscar/
 endif
