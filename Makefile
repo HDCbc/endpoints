@@ -79,7 +79,8 @@ pdc-start:
 #
 include ./config.env
 #
-DOCKER_IMAGE  ?= pdcbc/endpoint_oscar:prod
+TAG           ?= latest
+DOCKER_IMAGE  ?= pdcbc/endpoint_oscar:${TAG}
 DOCKER_NAME   ?= endpoint
 PATH_VOLUMES  ?= /encrypted/volumes
 PATH_IMPORT    = $(PATH_VOLUMES)/import/
