@@ -11,7 +11,7 @@ deploy:
 	@	sudo docker stop ${DOCKER_NAME} || true
 	@	sudo docker rm ${DOCKER_NAME} || true
 	@	sudo docker ${SOURCE_IMAGE}
-	@	sudo docker run -d --name=${DOCKER_NAME} --restart=always --log-driver=syslog \
+	@	sudo docker run -d --name=${DOCKER_NAME} ${LOGGING_TYPE} --restart=always \
 		  -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
 	@	sudo docker exec ${DOCKER_NAME} /ssh_test.sh
 
@@ -91,7 +91,9 @@ PATH_SSH       = $(PATH_VOLUMES)/ssh/
 #
 MODE          ?= prod
 SOURCE_IMAGE  ?= pull $(DOCKER_IMAGE)
+LOGGING_TYPE  ?= --log-driver=syslog
 ifeq ($(MODE),dev)
   DOCKER_IMAGE = local/endpoint
   SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./endpoint_oscar/
+	LOGGING_TYPE = --log-driver=json-file
 endif
