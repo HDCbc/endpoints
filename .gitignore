@@ -9,6 +9,7 @@
 *.sh
 .directory
 endpoint_oscar/
+gateway/
 
 ########################
 ### GitHub Suggested ###
