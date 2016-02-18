@@ -92,8 +92,9 @@ PATH_SSH       = $(PATH_VOLUMES)/ssh/
 MODE          ?= prod
 SOURCE_IMAGE  ?= pull $(DOCKER_IMAGE)
 LOGGING_TYPE  ?= --log-driver=syslog
+BUILD_FOLDER  ?= ./endpoint_oscar/
 ifeq ($(MODE),dev)
   DOCKER_IMAGE = local/endpoint
-  SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ./endpoint_oscar/
+  SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ${BUILD_FOLDER}
 	LOGGING_TYPE = --log-driver=json-file
 endif
