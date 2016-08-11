@@ -18,7 +18,7 @@ deploy:
 
 # Run PDC-standard Docker setup
 configure:
-	@	wget -qO- https://raw.githubusercontent.com/PDCbc/devops/master/docker_setup.sh | sh
+	@	wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
 
 
 # Make and test ssh keys, can be provided ahead of time
