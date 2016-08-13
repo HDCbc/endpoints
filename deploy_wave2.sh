@@ -49,7 +49,7 @@ fi
 #wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
 
 
-# Install AutoSSH
+# Install AutoSSH and Monit
 #
 if( ! which autossh )
 then
@@ -58,19 +58,15 @@ then
 fi
 
 
-# Install Monit and Enable Command Line Tools
+# Configure Monit (via monitrc)
 #
-if( ! which monit )
+if( sudo grep "# set httpd port 2812 and" /etc/monit/monitrc )
 then
-        sudo apt update
-        sudo apt install monit -y
-        ( \
-                echo '#'; \
-                echo '# Enable Command Line Tools'; \
-                echo 'set httpd port 2812 and'; \
-                echo '  use address 0.0.0.0'; \
-                echo '  allow 0.0.0.0/0.0.0.0'; \
-Re        ) | sudo tee -a /etc/monit/monitrc
+        sudo sed -i \
+                -e "/include \/etc\/monit\/conf-enabled\// s/^/#/" \
+                -e "/set httpd port 2812 and/s/^#//g" \
+                -e "/use address localhost/s/^#//g" \
+                /etc/monit/monitrc
 fi
 
 
