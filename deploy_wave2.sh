@@ -44,6 +44,26 @@ then
 fi
 
 
+# Test SSH Connection as Root
+#
+sleep 5
+echo
+echo
+if ( sudo ssh -p 2774 142.104.128.120 /app/test/ssh_landing.sh )
+then
+        echo 'Connection succesful!'
+else
+        sudo cat /root/.ssh/id_rsa.pub
+        echo 'ERROR: unable to connect to 142.104.128.120'
+        echo
+        echo 'Please verify the ssh public key (above) has been provided to admin@hdcbc.ca.'
+        echo
+        echo 'Press Enter to continue'
+        read -s ENTER_PAUSE
+fi
+echo
+
+
 # Docker
 #
 #wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
@@ -51,7 +71,7 @@ fi
 
 # Install AutoSSH and Monit
 #
-if( ! which autossh )
+if( ! which autossh )||( ! which monit )
 then
         sudo apt update
         sudo apt install autossh -y
@@ -257,20 +277,3 @@ then
 	) | sudo tee ${STOP_ANCHOR}
         sudo chmod +x ${STOP_ANCHOR}
 fi
-
-
-# Test SSH Connection as Root
-#
-sleep 5
-echo
-echo
-if ( sudo ssh -p 2774 142.104.128.120 /app/test/ssh_landing.sh )
-then
-        echo 'Connection succesful!'
-else
-        sudo cat /root/.ssh/id_rsa.pub
-        echo 'ERROR: unable to connect to 142.104.128.120'
-        echo
-        echo 'Please verify the ssh public key (above) has been provided to admin@hdcbc.ca.'
-fi
-echo
