@@ -282,3 +282,12 @@ then
         echo '    if 100 restarts within 100 cycles then timeout'; \
         ) | sudo tee -a ${MONIT_ANCHOR}
 fi
+
+
+# Upgrade System, Update GRUB and Reboot
+#
+sudo apt update
+sudo apt upgrade -y
+sudo apt dist-upgrade -y
+sudo update-grub
+sudo reboot
