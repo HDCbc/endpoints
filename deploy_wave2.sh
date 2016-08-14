@@ -93,89 +93,6 @@ fi
 sudo monit reload
 
 
-# Create alias to old admin Account
-#
-if(! grep --quiet 'pdcadmin' /etc/passwd )&&( grep --quiet '/home/hdcadmin' /etc/passwd )
-then
-        ADMIN_NUMBER=$(id -u hdcadmin)
-        echo "pdcadmin:x:${ADMIN_NUMBER}:${ADMIN_NUMBER}:Legacy Admin Account:/home/hdcadmin:/bin/bash" | sudo tee -a /etc/passwd
-fi
-
-
-###
-# AutoSSH Composer Connection
-###
-
-
-# Start Script
-#
-START_COMPOSER=${SCRIPT_DIR}/start_composer.sh
-if ! [ -s ${START_COMPOSER} ]
-then
-        sudo mkdir -p ${SCRIPT_DIR}
-	( \
-		echo '#!/bin/bash'; \
-                echo '#'; \
-                echo '# Start AutoSSH Connection to Anchor'; \
-                echo ''; \
-                echo ''; \
-                echo '# Halt on errors or uninitialized Variables'; \
-                echo '#'; \
-                echo 'set -e -o nounset -x'; \
-                echo ''; \
-                echo ''; \
-		echo '# Configure Variables'; \
-                echo '#'; \
-                echo 'GATEWAY_ID='${GATEWAY_ID}; \
-                echo 'MONIT_NAME=autossh_composer'; \
-		echo 'REMOTE_SSH_PORT=$(expr 44000 + ${GATEWAY_ID})'; \
-                echo 'LOCAL_SSH_PORT=22'; \
-                echo 'SERVER_IP=142.104.128.120'; \
-                echo 'SERVER_SSH_PORT=2774'; \
-                echo ''; \
-                echo ''; \
-                echo '# Set Log and Pid Files'; \
-                echo '#'; \
-                echo 'export AUTOSSH_LOGFILE=/usr/local/reverse_ssh/${MONIT_NAME}.log'; \
-                echo 'export AUTOSSH_PIDFILE=/usr/local/reverse_ssh/${MONIT_NAME}.pid'; \
-                echo '[ ! -s ${AUTOSSH_PIDFILE} ]|| rm ${AUTOSSH_PIDFILE}'; \
-                echo ''; \
-                echo ''; \
-                echo '# Start Tunnel'; \
-                echo '#'; \
-                echo '/usr/bin/autossh -M0 -p ${SERVER_SSH_PORT} -N -R ${REMOTE_SSH_PORT}:localhost:${LOCAL_SSH_PORT} autossh@${SERVER_IP} -o ServerAliveInterval=15 -o StrictHostKeyChecking=no -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes -v'; \
-	) | sudo tee ${START_COMPOSER}
-        sudo chmod +x ${START_COMPOSER}
-fi
-
-
-# Stop Script
-#
-STOP_COMPOSER=${SCRIPT_DIR}/stop_composer.sh
-if ! [ -s ${STOP_COMPOSER} ]
-then
-        sudo mkdir -p ${SCRIPT_DIR}
-	( \
-		echo '#!/bin/bash'; \
-                echo '#'; \
-                echo '# Stop AutoSSH Connection to Anchor'; \
-                echo ''; \
-                echo ''; \
-		echo '# Configure Variables'; \
-		echo '#'; \
-                echo 'MONIT_NAME=autossh_composer'; \
-                echo 'PIDFILE=/usr/local/reverse_ssh/${MONIT_NAME}.pid'; \
-                echo 'PIDKILL=$(cat ${PIDFILE})'; \
-                echo ''; \
-                echo ''; \
-                echo '# Start Tunnel'; \
-                echo '#'; \
-                echo '[ ! -z ${PIDKILL} ]|| kill ${PIDKILL}'; \
-	) | sudo tee ${STOP_COMPOSER}
-        sudo chmod +x ${STOP_COMPOSER}
-fi
-
-
 # Configure Monit
 #
 MONIT_COMPOSER=/etc/monit/conf.d/autossh_composer
@@ -185,103 +102,13 @@ then
         echo ''; \
         echo '# Monitor autossh_composer'; \
         echo '#'; \
-        echo 'check process autossh_composer with pidfile /usr/local/reverse_ssh/autossh_composer.pid'; \
-        echo '    start program = "/usr/local/reverse_ssh/bin/start_composer.sh"'; \
-        echo '    stop program = "/usr/local/reverse_ssh/bin/stop_composer.sh"'; \
+        echo 'check process autossh_composer with pidfile /autossh_composer.pid'; \
+        echo '    start program = "/bin/bash -c '\''export AUTOSSH_PID=/autossh_composer.pid; /usr/bin/autossh -M0 -p 2774 -N -R '$(expr 44000 + ${GATEWAY_ID})':localhost:22 -i /root/.ssh/id_rsa autossh@142.104.128.120 -o ServerAliveInterval=15 -o StrictHostKeyChecking=no -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes -v'\''"'; \
+        echo '     stop program = "/bin/bash -c '\''kill $( echo /autossh_composer.pid )'\''"'; \
         echo '    if 100 restarts within 100 cycles then timeout'; \
         ) | sudo tee -a ${MONIT_COMPOSER}
 fi
-
-
-##
-# AutoSSH Anchor Connection
-###
-
-
-# Start Script
-#
-START_ANCHOR=${SCRIPT_DIR}/start_anchor.sh
-if ! [ -s ${START_ANCHOR} ]
-then
-        sudo mkdir -p ${SCRIPT_DIR}
-	( \
-		echo '#!/bin/bash'; \
-                echo '#'; \
-                echo '# Start AutoSSH Connection to Anchor'; \
-                echo ''; \
-                echo ''; \
-                echo '# Halt on errors or uninitialized Variables'; \
-                echo '#'; \
-                echo 'set -e -o nounset'; \
-                echo ''; \
-                echo ''; \
-		echo '# Configure Variables'; \
-                echo '#'; \
-                echo 'GATEWAY_ID='${GATEWAY_ID}; \
-                echo 'MONIT_NAME=autossh_composer'; \
-		echo 'REMOTE_SSH_PORT=$(expr 44000 + ${GATEWAY_ID})'; \
-                echo 'LOCAL_SSH_PORT=22'; \
-                echo 'SERVER_IP=149.56.154.244'; \
-                echo 'SERVER_SSH_PORT=23646'; \
-                echo ''; \
-                echo ''; \
-                echo '# Set Log and Pid Files'; \
-                echo '#'; \
-                echo 'export AUTOSSH_LOGFILE=/usr/local/reverse_ssh/${MONIT_NAME}.log'; \
-                echo 'export AUTOSSH_PIDFILE=/usr/local/reverse_ssh/${MONIT_NAME}.pid'; \
-                echo '[ ! -s ${AUTOSSH_PIDFILE} ]|| rm ${AUTOSSH_PIDFILE}'; \
-                echo ''; \
-                echo ''; \
-                echo '# Start Tunnel'; \
-                echo '#'; \
-                echo '/usr/bin/autossh -M0 -p ${SERVER_SSH_PORT} -N -R ${REMOTE_SSH_PORT}:localhost:${LOCAL_SSH_PORT} autossh@${SERVER_IP} -o ServerAliveInterval=15 -o StrictHostKeyChecking=no -o ServerAliveCountMax=3 -o Protocol=2 -o ExitOnForwardFailure=yes'; \
-	) | sudo tee ${START_ANCHOR}
-        sudo chmod +x ${START_ANCHOR}
-fi
-
-
-# Stop Script
-#
-STOP_ANCHOR=${SCRIPT_DIR}/stop_anchor.sh
-if ! [ -s ${STOP_ANCHOR} ]
-then
-        sudo mkdir -p ${SCRIPT_DIR}
-	( \
-		echo '#!/bin/bash'; \
-                echo '#'; \
-                echo '# Stop AutoSSH Connection to Anchor'; \
-                echo ''; \
-                echo ''; \
-		echo '# Configure Variables'; \
-		echo '#'; \
-                echo 'MONIT_NAME=autossh_composer'; \
-                echo 'PIDFILE=/usr/local/reverse_ssh/${MONIT_NAME}.pid'; \
-                echo 'PIDKILL=$(cat ${PIDFILE})'; \
-                echo ''; \
-                echo ''; \
-                echo '# Start Tunnel'; \
-                echo '#'; \
-                echo '[ ! -z ${PIDKILL} ]|| kill ${PIDKILL}'; \
-	) | sudo tee ${STOP_ANCHOR}
-        sudo chmod +x ${STOP_ANCHOR}
-fi
-
-
-# Configure Monit
-#
-MONIT_ANCHOR=/etc/monit/conf.d/autossh_anchor
-if ! [ -s ${MONIT_ANCHOR} ]
-then
-        ( \
-        echo ''; \
-        echo '# Monitor autossh_anchor'; \
-        echo '#'; \
-        echo 'check process autossh_anchor with pidfile /usr/local/reverse_ssh/autossh_anchor.pid'; \
-        echo '    start program = "/usr/local/reverse_ssh/bin/start_anchor.sh"'; \
-        echo '    stop program = "/usr/local/reverse_ssh/bin/stop_anchor.sh"'; \
-        echo '    if 100 restarts within 100 cycles then timeout'; \
-        ) | sudo tee -a ${MONIT_ANCHOR}
-fi
+sudo chmod 600 ${MONIT_COMPOSER}
 
 
 # Upgrade System, Update GRUB and Reboot
