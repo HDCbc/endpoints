@@ -74,7 +74,7 @@ echo
 if( ! which autossh )||( ! which monit )
 then
         sudo apt update
-        sudo apt install autossh -y
+        sudo apt install autossh monit -y
 fi
 
 
@@ -86,8 +86,11 @@ then
                 -e "/include \/etc\/monit\/conf-enabled\// s/^/#/" \
                 -e "/set httpd port 2812 and/s/^#//g" \
                 -e "/use address localhost/s/^#//g" \
+                -e "/allow localhost/s/^#//g" \
                 /etc/monit/monitrc
 fi
+#
+sudo monit reload
 
 
 # Create alias to old admin Account
@@ -102,22 +105,6 @@ fi
 ###
 # AutoSSH Composer Connection
 ###
-
-# Configure Monit
-#
-MONIT_COMPOSER=/etc/monit/conf.d/autossh_composer
-if ! [ -s ${MONIT_COMPOSER} ]
-then
-	( \
-		echo ''; \
-		echo '# Monitor autossh_composer'; \
-		echo '#'; \
-		echo 'check process autossh_composer with pidfile /usr/local/reverse_ssh/autossh_composer.pid'; \
-		echo '    start program = "/usr/local/reverse_ssh/bin/start_composer.sh"'; \
-		echo '    stop program = "/usr/local/reverse_ssh/bin/stop_composer.sh"'; \
-		echo '    if 100 restarts within 100 cycles then timeout'; \
-	) | sudo tee -a ${MONIT_COMPOSER}
-fi
 
 
 # Start Script
@@ -189,25 +176,26 @@ then
 fi
 
 
+# Configure Monit
+#
+MONIT_COMPOSER=/etc/monit/conf.d/autossh_composer
+if ! [ -s ${MONIT_COMPOSER} ]
+then
+        ( \
+        echo ''; \
+        echo '# Monitor autossh_composer'; \
+        echo '#'; \
+        echo 'check process autossh_composer with pidfile /usr/local/reverse_ssh/autossh_composer.pid'; \
+        echo '    start program = "/usr/local/reverse_ssh/bin/start_composer.sh"'; \
+        echo '    stop program = "/usr/local/reverse_ssh/bin/stop_composer.sh"'; \
+        echo '    if 100 restarts within 100 cycles then timeout'; \
+        ) | sudo tee -a ${MONIT_COMPOSER}
+fi
+
+
 ##
 # AutoSSH Anchor Connection
 ###
-
-# Configure Monit
-#
-MONIT_ANCHOR=/etc/monit/conf.d/autossh_anchor
-if ! [ -s ${MONIT_ANCHOR} ]
-then
-	( \
-		echo ''; \
-		echo '# Monitor autossh_anchor'; \
-		echo '#'; \
-		echo 'check process autossh_anchor with pidfile /usr/local/reverse_ssh/autossh_anchor.pid'; \
-		echo '    start program = "/usr/local/reverse_ssh/bin/start_anchor.sh"'; \
-		echo '    stop program = "/usr/local/reverse_ssh/bin/stop_anchor.sh"'; \
-		echo '    if 100 restarts within 100 cycles then timeout'; \
-	) | sudo tee -a ${MONIT_ANCHOR}
-fi
 
 
 # Start Script
@@ -276,4 +264,21 @@ then
                 echo '[ ! -z ${PIDKILL} ]|| kill ${PIDKILL}'; \
 	) | sudo tee ${STOP_ANCHOR}
         sudo chmod +x ${STOP_ANCHOR}
+fi
+
+
+# Configure Monit
+#
+MONIT_ANCHOR=/etc/monit/conf.d/autossh_anchor
+if ! [ -s ${MONIT_ANCHOR} ]
+then
+        ( \
+        echo ''; \
+        echo '# Monitor autossh_anchor'; \
+        echo '#'; \
+        echo 'check process autossh_anchor with pidfile /usr/local/reverse_ssh/autossh_anchor.pid'; \
+        echo '    start program = "/usr/local/reverse_ssh/bin/start_anchor.sh"'; \
+        echo '    stop program = "/usr/local/reverse_ssh/bin/stop_anchor.sh"'; \
+        echo '    if 100 restarts within 100 cycles then timeout'; \
+        ) | sudo tee -a ${MONIT_ANCHOR}
 fi
