@@ -1,3 +1,4 @@
+
 #!/bin/bash
 #
 # Prepare Endpoint deployment
@@ -6,6 +7,21 @@
 # Halt on errors or uninitialized Variables
 #
 set -e -o nounset
+
+
+# Check or create config.env
+#
+if ! [ -s ./config.env ]
+then
+        cp ./config.env-sample ./config.env
+        echo
+        echo 'About to edit config.env.  Setup will resume on exit.'
+        echo
+        echo 'Press Enter to continue'
+        read -s ENTER_PAUSE
+        echo
+        nano config.env
+fi
 
 
 # Load Config file and Store GATEWAY_ID
@@ -53,7 +69,9 @@ if ( sudo ssh -p 2774 142.104.128.120 /app/test/ssh_landing.sh )
 then
         echo 'Connection succesful!'
 else
+        echo
         sudo cat /root/.ssh/id_rsa.pub
+        echo
         echo 'ERROR: unable to connect to 142.104.128.120'
         echo
         echo 'Please verify the ssh public key (above) has been provided to admin@hdcbc.ca.'
