@@ -1,0 +1,34 @@
+# Docker Compose file for the HDC's Endpoint service
+#
+#
+# Used for collecting aggregate data queries.
+#
+# Use secondary .YML files for development and add -f YOUR.YML at execution.
+
+
+gateway:
+  container_name: gateway
+  hostname: gateway
+  image: hdcbc/gateway:${TAG}
+  restart: always
+  log_driver: "journald"
+  links:
+    - gateway_db:database
+  ports:
+    - "3001:3001"
+  volumes:
+    - ${VOLS}/volumes/ssh/:/volumes/ssh/:rw
+    - ${VOLS}/volumes/import/:/volumes/import/:rw
+    - ${VOLS}/volumes/mongo/:/volumes/mongo/:rw
+  env_file:
+    - ./config.env
+
+
+gateway_db:
+  container_name: gateway_db
+  hostname: gateway_db
+  image: mongo:3.2.9
+  restart: always
+  log_driver: "journald"
+  volumes:
+    - ${VOLS}/private/mongo/live/:/data/db/:rw

@@ -1,24 +1,49 @@
-########
-# Jobs #
-########
+################
+# General Jobs #
+################
 
-default: configure deploy
+default: config-mongodb deploy sample-data
 
-endpoint: pdc-user pdc-start
+configure: config-docker config-mongodb
 
-# Pull or build (dev) image, deploy container and test ssh
+queries: query-importer
+
+
+###################
+# Individual jobs #
+###################
+
 deploy:
-	@	sudo docker stop ${DOCKER_NAME} || true
-	@	sudo docker rm ${DOCKER_NAME} || true
-	@	sudo docker ${SOURCE_IMAGE}
-	@	sudo docker run -d --name=${DOCKER_NAME} ${LOGGING_TYPE} --restart=always \
-		  -v ${PATH_VOLUMES}:/volumes/ --env-file=./config.env ${DOCKER_IMAGE}
-	@	sudo docker exec ${DOCKER_NAME} /ssh_test.sh
+	@	which docker-compose || make config-docker
+	@	[ -s ./dev/dev.yml ] || sudo cp ./dev/dev.yml-sample ./dev/dev.yml
+	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) pull
+	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) build
+	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) up -d
+	@	sudo docker exec gateway /ssh_test.sh
 
+config-docker:
+		wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
 
-# Run PDC-standard Docker setup
-configure:
-	@	wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
+config-mongodb:
+	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
+	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
+	@	if(! grep --quiet 'never > /sys/kernel/mm/transparent_hugepage/enabled' /etc/rc.local ); \
+		then \
+			sudo sed -i '/exit 0/d' /etc/rc.local; \
+			( \
+				echo ''; \
+				echo '# Disable Transparent Hugepage, for Mongo'; \
+				echo '#'; \
+				echo 'echo never > /sys/kernel/mm/transparent_hugepage/enabled'; \
+				echo 'echo never > /sys/kernel/mm/transparent_hugepage/defrag'; \
+				echo ''; \
+				echo 'exit 0'; \
+			) | sudo tee -a /etc/rc.local; \
+		fi; \
+		sudo chmod 755 /etc/rc.local
+
+sample-data:
+	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
 
 
 # Make and test ssh keys, can be provided ahead of time
@@ -71,30 +96,24 @@ pdc-start:
 		chmod +x $${START}
 
 
-#############
-# Variables #
-#############
+################
+# Runtime prep #
+################
 
 # Source and set variables
 #
 include ./config.env
-#
-TAG           ?= latest
-DOCKER_IMAGE  ?= pdcbc/endpoint_oscar:${TAG}
-DOCKER_NAME   ?= endpoint
-PATH_VOLUMES  ?= /encrypted/volumes
-PATH_IMPORT    = $(PATH_VOLUMES)/import/
-PATH_SSH       = $(PATH_VOLUMES)/ssh/
 
 
-# Pull (prod) or build (dev) image
+# Default tag and volume path
 #
-MODE          ?= prod
-SOURCE_IMAGE  ?= pull $(DOCKER_IMAGE)
-LOGGING_TYPE  ?= --log-driver=syslog
-BUILD_FOLDER  ?= ./endpoint_oscar/
+TAG  ?= latest
+VOLS ?= /hdc
+
+
+# Default YML is base.yml
+#
+YML ?= -f ./docker-compose.yml
 ifeq ($(MODE),dev)
-  DOCKER_IMAGE = local/endpoint
-  SOURCE_IMAGE = build -t $(DOCKER_IMAGE) ${BUILD_FOLDER}
-	LOGGING_TYPE = --log-driver=json-file
+	YML += -f ./dev/dev.yml
 endif
