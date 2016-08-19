@@ -8,7 +8,9 @@
 *.sql
 .directory
 dev/*/*
-
+dev/dev.yml
+dev/*/*
+!dev/dev.yml-sample
 
 
 ########################

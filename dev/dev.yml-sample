@@ -1,0 +1,23 @@
+# Development Docker Compose file for the PDC's Hub Stack
+#
+#
+# Settings here supplement and override those in the primary .YML file.
+# E.g.:
+#
+# container:
+#   build: /path/to/Dockerfile
+#   log_driver: "json-file"
+#   environment:
+#     - VARIABLE=value
+#
+# https://docs.docker.com/compose/compose-file/
+
+
+gateway:
+  log_driver: "json-file"
+  build: ./dev/gateway
+
+
+gateway_db:
+  log_driver: "json-file"
+  build: ./dev/gateway/database
