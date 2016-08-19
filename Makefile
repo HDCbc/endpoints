@@ -13,16 +13,19 @@ queries: query-importer
 # Individual jobs #
 ###################
 
+# Check prerequisites, pull/build and deploy containers, then test ssh keys
 deploy:
 	@	which docker-compose || make config-docker
-	@	[ -s ./dev/dev.yml ] || sudo cp ./dev/dev.yml-sample ./dev/dev.yml
+	@	[ $(MODE) != "dev" ] || \
+			[ -s ./dev/dev.yml ] || \
+			sudo cp ./dev/dev.yml-sample ./dev/dev.yml
 	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) pull
 	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) build
 	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) up -d
 	@	sudo docker exec gateway /ssh_test.sh
 
 config-docker:
-		wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
+	@	wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
 
 config-mongodb:
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
@@ -108,10 +111,11 @@ include ./config.env
 # Default tag and volume path
 #
 TAG  ?= latest
+MODE ?= prod
 VOLS ?= /hdc
 
 
-# Default YML is base.yml
+# Default YML is docker-compose.yml
 #
 YML ?= -f ./docker-compose.yml
 ifeq ($(MODE),dev)
