@@ -19,10 +19,10 @@ deploy:
 	@	[ $(MODE) != "dev" ] || \
 			[ -s ./dev/dev.yml ] || \
 			sudo cp ./dev/dev.yml-sample ./dev/dev.yml
-	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) pull
-	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) build
-	@	sudo TAG=$(TAG) VOLS=${VOLS} docker-compose $(YML) up -d
-	@	sudo docker exec gateway /ssh_test.sh
+	@	sudo TAG=$(TAG) VOLS_CONFIG=$(VOLS_CONFIG) VOLS_DATA=$(VOLS_DATA) docker-compose $(YML) pull
+	@	sudo TAG=$(TAG) VOLS_CONFIG=$(VOLS_CONFIG) VOLS_DATA=$(VOLS_DATA) docker-compose $(YML) build
+	@	sudo TAG=$(TAG) VOLS_CONFIG=$(VOLS_CONFIG) VOLS_DATA=$(VOLS_DATA) docker-compose $(YML) up -d
+	@	sudo docker exec -ti gateway /ssh_test.sh
 
 config-docker:
 	@	wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
@@ -112,10 +112,11 @@ include ./config.env
 #
 TAG  ?= latest
 MODE ?= prod
-VOLS ?= /hdc
+VOLS_CONFIG ?= /hdc/config
+VOLS_DATA ?= /hdc/data
 
 
-# Default YML is docker-compose.yml
+# Default is docker-compose.yml, add dev.yml for development
 #
 YML ?= -f ./docker-compose.yml
 ifeq ($(MODE),dev)

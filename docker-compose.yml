@@ -17,9 +17,7 @@ gateway:
   ports:
     - "3001:3001"
   volumes:
-    - ${VOLS}/volumes/ssh/:/volumes/ssh/:rw
-    - ${VOLS}/volumes/import/:/volumes/import/:rw
-    - ${VOLS}/volumes/mongo/:/volumes/mongo/:rw
+    - ${VOLS_CONFIG}/ssh/:/volumes/ssh/:rw
   env_file:
     - ./config.env
 
@@ -31,4 +29,4 @@ gateway_db:
   restart: always
   log_driver: "journald"
   volumes:
-    - ${VOLS}/private/mongo/live/:/data/db/:rw
+    - ${VOLS_DATA}/mongo/:/data/db/:rw
