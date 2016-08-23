@@ -6,8 +6,6 @@ default: config-mongodb deploy sample-data
 
 configure: config-docker config-mongodb
 
-queries: query-importer
-
 
 ###################
 # Individual jobs #
