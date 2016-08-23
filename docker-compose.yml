@@ -17,7 +17,7 @@ gateway:
   ports:
     - "3001:3001"
   volumes:
-    - ${VOLS_CONFIG}/ssh/:/volumes/ssh/:rw
+    - ${VOLS_CONFIG}/ssh/:/home/autossh/.ssh/:rw
   env_file:
     - ./config.env
 
