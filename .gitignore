@@ -7,9 +7,8 @@
 *.xml
 *.sql
 .directory
-dev/*/*
-dev/dev.yml
-dev/*/*
+dev/*
+!dev/README.md
 !dev/dev.yml-sample
 
 
