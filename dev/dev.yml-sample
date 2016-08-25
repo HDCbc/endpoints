@@ -1,12 +1,12 @@
-# Development Docker Compose file for the PDC's Hub Stack
+# Development Docker Compose file for the HDC's Endpoint service
 #
 #
 # Settings here supplement and override those in the primary .YML file.
 # E.g.:
 #
-# container:
-#   build: /path/to/Dockerfile
-#   log_driver: "json-file"
+# containerName:
+#   build: /path/to/Dockerfile (XOR w/ image)
+#   image: organization/container:tag (XOR w/ build)
 #   environment:
 #     - VARIABLE=value
 #
@@ -15,9 +15,20 @@
 
 gateway:
   log_driver: "json-file"
-  build: ./dev/gateway
+  # build: ./dev/gateway
 
 
 gateway_db:
   log_driver: "json-file"
-  build: ./dev/gateway/database
+#  image: mongo:latest
+
+
+# e2e_oscar:
+#   container_name: e2e_oscar
+#   hostname: e2e_oscar
+#   build: ./dev/e2e-oscar
+#   log_driver: "json-file"
+#   links:
+#     - gateway:gateway
+#   volumes:
+#     - ${VOLS_DATA}/import/:/import/:rw
