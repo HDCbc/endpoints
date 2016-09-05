@@ -1,5 +1,5 @@
 # Monitor anchor
 check process anchor with pidfile /hdc/anchor.pid
-    start program = "/bin/bash -c 'AUTOSSH_PIDFILE=/hdc/anchor.pid /usr/bin/autossh -f -M0 -p 23646 -N -R 44xxx:localhost:22 autossh@149.56.154.244 -o BatchMode=yes -o ServerAliveInterval=60 -o ExitOnForwardFailure=yes'"
+    start program = "/bin/bash -c 'AUTOSSH_PIDFILE=/hdc/anchor.pid /usr/bin/autossh -f -M0 -p 23646 -N -R 44xxx:localhost:22 autossh@149.56.154.244 -o BatchMode=yes -o ServerAliveInterval=30 -o ExitOnForwardFailure=yes'"
     stop program = "/bin/bash -c '/bin/kill `/bin/cat /hdc/anchor.pid`'"
     if 100 restarts within 100 cycles then timeout
