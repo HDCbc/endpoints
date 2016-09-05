@@ -1,8 +1,0 @@
-# Maintain autossh admin tunnel
-#
-5 * * * * /usr/bin/monit start autossh_admin >> /var/log/monit-cron.log 2>&1
-
-
-# Import data after nightly SQL dumps
-#
-0 2 * * * cd /encrypted/docker; /encrypted/docker/endpoint.sh import >> /encrypted/docker/cron-import.log 2>&1
