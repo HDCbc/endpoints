@@ -68,11 +68,10 @@ ssh: env
 	@	echo
 
 
-# Create import user, for PDC-managed endpoints
-pdc-user: env
-	@	sudo mkdir -p ${PATH_IMPORT}
-	@	[ "$$( getent passwd exporter )" ]|| \
-		  sudo useradd -m -d ${PATH_IMPORT} -c "OSP Export Account" -s /bin/bash exporter
+# User for HDC managed solution
+hdc-user: env
+	[ "$$( getent passwd exporter )" ]|| \
+		sudo useradd -m -d ${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
 
 
 ################
