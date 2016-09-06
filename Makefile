@@ -84,6 +84,23 @@ hdc-user: env
 		sudo useradd -m -d ${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
 
 
+# Monit config for HDC managed solution
+hdc-config-monit: hdc-packages
+	sudo cp ./hdc/monit_* /etc/monit/conf.d/
+	sudo cat /etc/monit/conf.d/monit_*
+	sudo sed -i "s/44xxx/`expr 44000 + $${GATEWAY_ID}`/" /etc/monit/conf.d/monit_*
+	if( sudo grep --quiet "# set httpd port 2812 and" /etc/monit/monitrc ); \
+	then \
+	sudo sed -i \
+		-e "/include \/etc\/monit\/conf-enabled\// s/^/#/" \
+		-e "/set httpd port 2812 and/s/^#//g" \
+		-e "/use address localhost/s/^#//g" \
+		-e "/allow localhost/s/^#//g" \
+		/etc/monit/monitrc; \
+	fi
+	sudo monit reload
+
+
 hdc-firewall: hdc-packages
 	sudo ufw allow from 142.104.128.120
 	sudo ufw allow from 142.104.128.121
