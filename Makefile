@@ -91,10 +91,12 @@ hdc-config-monit: env hdc-packages
 hdc-encrypt: hdc-packages hdc-config-docker
 	@	sudo cp hdc/decrypt.sh /hdc/
 	@	sudo docker stop gateway_db || true
-	@	sudo mkdir -p /hdc/.encrypted /hdc/data
-	@	sudo encfs --public /hdc/.encrypted /hdc/data/
-	@	sudo chmod a+rx /hdc/data
-	@	sudo chmod a+rx /hdc/.encrypted
+	@	if [ ! -d "/hdc/.encrypted" ]; \
+		then \
+			sudo mkdir -p /hdc/.encrypted /hdc/data; \
+			sudo encfs --public /hdc/.encrypted /hdc/data; \
+		fi
+	@	sudo chmod a+rx /hdc/.encrypted /hdc/data
 
 
 # Firewall, limit to HDC servers for HDC managed solution
@@ -129,7 +131,6 @@ hdc-ssh: env
 		then \
 		    sudo ssh-keygen -b 4096 -t rsa -N \"\" -C ep${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f /root/.ssh/id_rsa; \
 		fi
-
 	@	if ( sudo ssh -p 2774 142.104.128.120 /app/test/ssh_landing.sh ); \
 		then \
 	        echo 'Connection succesful!'; \
