@@ -1,5 +1,7 @@
 #!/bin/bash
 #
+# Halt on errors or unset variables
+#
 set -eu
 
 
@@ -19,5 +21,7 @@ set -eu
 #
 . /hdc/endpoint/config.env
 IP_STATIC=${IP_STATIC:-"."}
-[ $( hostname -I )| grep ${IP_STATIC} ]|| \
-	sudo ip addr add ${IP_STATIC} dev em1
+ETHERNAME=$( ifconfig | grep 'enx\|em1' | awk '{print $1}' )
+ADDRESSES=$( hostname -I | grep ${IP_STATIC} )
+[ "${ADDRESSES}" ]|| \
+	echo sudo ip addr add ${IP_STATIC} dev ${ETHERNAME}
