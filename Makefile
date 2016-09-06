@@ -84,6 +84,14 @@ hdc-user: env
 		sudo useradd -m -d ${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
 
 
+hdc-firewall: hdc-packages
+	sudo ufw allow from 142.104.128.120
+	sudo ufw allow from 142.104.128.121
+	sudo ufw allow from 149.56.154.244
+	sudo ufw --force enable
+	sudo ufw status verbose
+
+
 ################
 # Runtime prep #
 ################
