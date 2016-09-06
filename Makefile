@@ -47,6 +47,12 @@ sample-data:
 	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
 
 
+# Stop Docker at boot for Ubuntu 14.04 (docker.conf) and 16.04 (systemd)
+hdc-docker-config:
+	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
+	sudo systemctl disable docker || true
+
+
 # Encrypt, stop Docker boot and add decrypt.sh for HDC managed solution
 hdc-encrypt: hdc-packages hdc-docker-config
 	sudo cp hdc/decrypt.sh /hdc/
