@@ -2,7 +2,7 @@
 #
 # Halt on errors or unset variables
 #
-set -eu
+set -eux
 
 
 # Decrypt private data folders
@@ -21,7 +21,8 @@ set -eu
 #
 . /hdc/endpoint/config.env
 IP_STATIC=${IP_STATIC:-"."}
-ETHERNAME=$( ifconfig | grep 'enx\|em1' | awk '{print $1}' )
-ADDRESSES=$( hostname -I | grep ${IP_STATIC} )
-[ "${ADDRESSES}" ]|| \
-	echo sudo ip addr add ${IP_STATIC} dev ${ETHERNAME}
+ETHERNAME="$( ifconfig | grep 'enx\|em1' | awk '{print $1}' )"
+if [ ! "$( hostname -I | grep ${IP_STATIC} )" ]
+then
+	sudo ip addr add ${IP_STATIC} dev ${ETHERNAME}
+fi
