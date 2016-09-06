@@ -1,7 +1,7 @@
 # Development Docker Compose file for the HDC's Endpoint service
 #
 #
-# Settings here supplement and override those in the primary .YML file.
+# Settings in dev.yml supplement and override those in the primary .YML file.
 # E.g.:
 #
 # containerName:
@@ -15,7 +15,7 @@
 
 gateway:
   log_driver: "json-file"
-  # build: ./dev/gateway
+  # build: ./gateway
 
 
 gateway_db:
@@ -26,7 +26,7 @@ gateway_db:
 # e2e_oscar:
 #   container_name: e2e_oscar
 #   hostname: e2e_oscar
-#   build: ./dev/e2e-oscar
+#   build: ./e2e-oscar
 #   log_driver: "json-file"
 #   links:
 #     - gateway:gateway

@@ -19,7 +19,7 @@ gateway:
   volumes:
     - ${VOLS_CONFIG}/ssh/:/home/autossh/.ssh/:rw
   env_file:
-    - ./config.env
+    - ../config.env
 
 
 gateway_db:

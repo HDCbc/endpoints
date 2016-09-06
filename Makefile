@@ -167,7 +167,7 @@ VOLS_DATA ?= /hdc/data
 
 # Default is docker-compose.yml, add dev.yml for development
 #
-YML ?= -f ./docker-compose.yml
+YML ?= -f ./docker/deploy.yml
 ifeq ($(MODE),dev)
-	YML += -f ./dev/dev.yml
+	YML += -f ./docker/dev.yml
 endif

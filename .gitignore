@@ -7,9 +7,10 @@
 *.xml
 *.sql
 .directory
-dev/*
-!dev/README.md
-!dev/dev.yml-sample
+docker/*
+!docker/deploy.yml
+!docker/dev.yml-sample
+!docker/README.md
 
 
 ########################
