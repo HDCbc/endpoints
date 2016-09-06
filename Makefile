@@ -16,11 +16,12 @@ hdc: hdc-ssh hdc-user hdc-packages hdc-firewall hdc-encrypt deploy
 deploy: config-docker config-mongodb
 	@	which docker-compose || make config-docker
 	@	[ $(MODE) != "dev" ] || \
-			[ -s ./dev/dev.yml ] || \
-			sudo cp ./dev/dev.yml-sample ./dev/dev.yml
-	@	sudo TAG=$(TAG) VOLS_CONFIG=$(VOLS_CONFIG) VOLS_DATA=$(VOLS_DATA) docker-compose $(YML) pull
-	@	sudo TAG=$(TAG) VOLS_CONFIG=$(VOLS_CONFIG) VOLS_DATA=$(VOLS_DATA) docker-compose $(YML) build
-	@	sudo TAG=$(TAG) VOLS_CONFIG=$(VOLS_CONFIG) VOLS_DATA=$(VOLS_DATA) docker-compose $(YML) up -d
+			[ -s ./docker/dev.yml ] || \
+			sudo cp ./docker/dev.yml-sample ./docker/dev.yml
+		. ./config.env; \
+		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) pull; \
+		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) build; \
+		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) up -d
 	@	sudo docker exec -ti gateway /ssh_test.sh
 
 
@@ -157,12 +158,10 @@ hdc-user: env
 ################
 
 
-# Default tag and volume path
+# Default tag (e.g. latest, dev, 0.1.2) and build mode (e.g. prod, dev)
 #
 TAG  ?= latest
 MODE ?= prod
-VOLS_CONFIG ?= /hdc/config
-VOLS_DATA ?= /hdc/data
 
 
 # Default is docker-compose.yml, add dev.yml for development
