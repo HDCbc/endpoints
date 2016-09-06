@@ -47,8 +47,18 @@ sample-data:
 	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
 
 
+# Configures and sources environment, used as a prerequisite
+env:
+	@	if ! [ -s ./config.env ]; \
+		then \
+		        cp ./config.env-sample ./config.env; \
+		        nano config.env; \
+		fi; \
+		. ./config.env
+
+
 # Make and test ssh keys, can be provided ahead of time
-ssh:
+ssh: env
 	@	sudo mkdir -p ${PATH_SSH}
 	@	sudo ssh-keygen -b 4096 -t rsa -N "" -C ep${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f ${PATH_SSH}/id_rsa || true
 	@	cat ${PATH_SSH}/id_rsa.pub
@@ -59,7 +69,7 @@ ssh:
 
 
 # Create import user, for PDC-managed endpoints
-pdc-user:
+pdc-user: env
 	@	sudo mkdir -p ${PATH_IMPORT}
 	@	[ "$$( getent passwd exporter )" ]|| \
 		  sudo useradd -m -d ${PATH_IMPORT} -c "OSP Export Account" -s /bin/bash exporter
@@ -68,10 +78,6 @@ pdc-user:
 ################
 # Runtime prep #
 ################
-
-# Source and set variables
-#
-include ./config.env
 
 
 # Default tag and volume path
