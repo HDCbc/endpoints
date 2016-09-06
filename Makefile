@@ -84,6 +84,17 @@ hdc-user: env
 		sudo useradd -m -d ${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
 
 
+# Packages required for HDC managed solution
+# TODO: switch to apt when Ubuntu 14.04 is dropped
+hdc-packages: config-docker
+	sudo apt-get update
+	PACKAGES="autossh encfs monit ufw"; \
+	for p in $${PACKAGES}; \
+	do \
+		which $${p} || sudo apt-get install $${p} -y; \
+	done
+
+
 # Monit config for HDC managed solution
 hdc-config-monit: hdc-packages
 	sudo cp ./hdc/monit_* /etc/monit/conf.d/
