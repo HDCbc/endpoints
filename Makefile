@@ -2,9 +2,9 @@
 # General Jobs #
 ################
 
-default: config-mongodb deploy sample-data
+default: deploy
 
-configure: config-docker config-mongodb
+hdc: hdc-ssh hdc-user hdc-packages hdc-firewall hdc-encrypt deploy
 
 
 ###################
