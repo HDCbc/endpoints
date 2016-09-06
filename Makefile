@@ -60,8 +60,7 @@ env:
 		then \
 		        cp ./config.env-sample ./config.env; \
 		        nano config.env; \
-		fi; \
-		. ./config.env
+		fi
 
 
 # Stop Docker at boot for Ubuntu 14.04 (docker.conf) and 16.04 (systemd)
@@ -71,9 +70,10 @@ hdc-config-docker:
 
 
 # Monit config for HDC managed solution
-hdc-config-monit: hdc-packages
+hdc-config-monit: env hdc-packages
 	sudo cp ./hdc/monit_* /etc/monit/conf.d/
 	sudo cat /etc/monit/conf.d/monit_*
+	. ./config.env; \
 	sudo sed -i "s/44xxx/`expr 44000 + $${GATEWAY_ID}`/" /etc/monit/conf.d/monit_*
 	if( sudo grep --quiet "# set httpd port 2812 and" /etc/monit/monitrc ); \
 	then \
@@ -109,16 +109,22 @@ hdc-firewall: hdc-packages
 # Packages required for HDC managed solution
 # TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
 hdc-packages: config-docker
-	sudo apt-get update
 	PACKAGES="autossh encfs monit ufw"; \
+	MISSING=0; \
 	for p in $${PACKAGES}; \
 	do \
-		which $${p} || sudo apt-get install $${p} -y; \
-	done
+		which $${p} || MISSING=1; \
+	done;\
+	if [ $${MISSING} -gt 0 ]; \
+	then \
+		sudo apt-get update; \
+		sudo apt-get install $${PACKAGES} -y; \
+	fi
 
 
 # SSH key creation and testing for HDC managed solution
 hdc-ssh: env
+	. ./config.env; \
 	if( sudo test ! -e /root/.ssh/id_rsa ); \
 	then \
 	    sudo ssh-keygen -b 4096 -t rsa -N \"\" -C ep${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f /root/.ssh/id_rsa; \
@@ -140,6 +146,7 @@ hdc-ssh: env
 
 # User for HDC managed solution
 hdc-user: env
+	. ./config.env; \
 	[ "$$( getent passwd exporter )" ]|| \
 		sudo useradd -m -d ${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
 
