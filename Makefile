@@ -4,7 +4,7 @@
 
 default: deploy
 
-hdc: env hdc-make deploy
+hdc: hdc-make deploy
 
 
 ###################
@@ -12,13 +12,22 @@ hdc: env hdc-make deploy
 ###################
 
 
+# Configures and sources environment, used as a prerequisite
+env:
+	@	if ! [ -s ./config.env ]; \
+		then \
+		        cp ./config.env-sample ./config.env; \
+		        nano config.env; \
+		fi
+
+
 # Additional setup for HDC managed solutions
-hdc-make:
-	$(MAKE) -C hdc
+hdc-make: env
+	@	$(MAKE) -C hdc
 
 
 # Check prerequisites, pull/build and deploy containers, then test ssh keys
-deploy: config-docker config-mongodb
+deploy: env config-docker config-mongodb
 	@	which docker-compose || make config-docker
 	@	[ $(MODE) != "dev" ] || \
 			[ -s ./docker/dev.yml ] || \
@@ -58,15 +67,6 @@ config-mongodb:
 # Import Sample10 data into a Gateway
 sample-data:
 	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
-
-
-# Configures and sources environment, used as a prerequisite
-env:
-	@	if ! [ -s ./config.env ]; \
-		then \
-		        cp ./config.env-sample ./config.env; \
-		        nano config.env; \
-		fi
 
 
 ################
