@@ -5,6 +5,11 @@
 set -eu
 
 
+# Source config
+#
+. /hdc/endpoint/config.env
+
+
 # Decrypt private data folders
 #
 [ -s /hdc/data/mongo/WiredTiger ]|| \
@@ -17,12 +22,16 @@ set -eu
 	sudo service docker start
 
 
-# Add static IP, if provided in env file
+# Allow local server through firwall, if provided
 #
-. /hdc/endpoint/config.env
-IP_STATIC=${IP_STATIC:-"."}
-ETHERNAME="$( ifconfig | grep 'enx\|em1' | awk '{print $1}' )"
-if [ ! "$( hostname -I | grep ${IP_STATIC} )" ]
+[ -z ${DATA_FROM} ]|| \
+	sudo ufw allow from ${DATA_FROM}
+
+
+# Add static IP, if provided and address not yes applied
+#
+if [ ! -z ${IP_STATIC} ]&&[ ! "$( hostname -I | grep ${IP_STATIC} )" ]
 then
+	ETHERNAME="$( ifconfig | grep 'enx\|em1' | awk '{print $1}' )"
 	sudo ip addr add ${IP_STATIC} dev ${ETHERNAME}
 fi
