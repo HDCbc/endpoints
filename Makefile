@@ -47,6 +47,17 @@ sample-data:
 	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
 
 
+# Encrypt, stop Docker boot and add decrypt.sh for HDC managed solution
+hdc-encrypt: hdc-packages hdc-docker-config
+	sudo cp hdc/decrypt.sh /hdc/
+	sudo docker stop gateway_db || true
+	sudo mkdir -p /hdc/.encrypted /hdc/data
+	[ ]
+	sudo encfs --public /hdc/.encrypted /hdc/data/
+	sudo chmod a+rx /hdc/data
+	sudo chmod a+rx /hdc/.encrypted
+
+
 # Configures and sources environment, used as a prerequisite
 env:
 	@	if ! [ -s ./config.env ]; \
