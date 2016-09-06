@@ -11,8 +11,9 @@ hdc: hdc-ssh hdc-user hdc-packages hdc-firewall hdc-encrypt deploy
 # Individual jobs #
 ###################
 
+
 # Check prerequisites, pull/build and deploy containers, then test ssh keys
-deploy:
+deploy: config-docker config-mongodb
 	@	which docker-compose || make config-docker
 	@	[ $(MODE) != "dev" ] || \
 			[ -s ./dev/dev.yml ] || \
@@ -22,9 +23,13 @@ deploy:
 	@	sudo TAG=$(TAG) VOLS_CONFIG=$(VOLS_CONFIG) VOLS_DATA=$(VOLS_DATA) docker-compose $(YML) up -d
 	@	sudo docker exec -ti gateway /ssh_test.sh
 
+
+# Docker and Docker Compose installs, used as a prerequisite
 config-docker:
 	@	which docker-compose || wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
 
+
+# Disable Transparent Hugepage, for MongoDb
 config-mongodb:
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/enabled )> /dev/null
 	@	( echo never | sudo tee /sys/kernel/mm/transparent_hugepage/defrag )> /dev/null
@@ -43,25 +48,10 @@ config-mongodb:
 		fi; \
 		sudo chmod 755 /etc/rc.local
 
+
+# Import Sample10 data into a Gateway
 sample-data:
 	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
-
-
-# Stop Docker at boot for Ubuntu 14.04 (docker.conf) and 16.04 (systemd)
-hdc-docker-config:
-	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
-	sudo systemctl disable docker || true
-
-
-# Encrypt, stop Docker boot and add decrypt.sh for HDC managed solution
-hdc-encrypt: hdc-packages hdc-docker-config
-	sudo cp hdc/decrypt.sh /hdc/
-	sudo docker stop gateway_db || true
-	sudo mkdir -p /hdc/.encrypted /hdc/data
-	[ ]
-	sudo encfs --public /hdc/.encrypted /hdc/data/
-	sudo chmod a+rx /hdc/data
-	sudo chmod a+rx /hdc/.encrypted
 
 
 # Configures and sources environment, used as a prerequisite
@@ -74,7 +64,60 @@ env:
 		. ./config.env
 
 
-# SSH for HDC managed solution
+# Stop Docker at boot for Ubuntu 14.04 (docker.conf) and 16.04 (systemd)
+hdc-config-docker:
+	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
+	sudo systemctl disable docker || true
+
+
+# Monit config for HDC managed solution
+hdc-config-monit: hdc-packages
+	sudo cp ./hdc/monit_* /etc/monit/conf.d/
+	sudo cat /etc/monit/conf.d/monit_*
+	sudo sed -i "s/44xxx/`expr 44000 + $${GATEWAY_ID}`/" /etc/monit/conf.d/monit_*
+	if( sudo grep --quiet "# set httpd port 2812 and" /etc/monit/monitrc ); \
+	then \
+	sudo sed -i \
+		-e "/include \/etc\/monit\/conf-enabled\// s/^/#/" \
+		-e "/set httpd port 2812 and/s/^#//g" \
+		-e "/use address localhost/s/^#//g" \
+		-e "/allow localhost/s/^#//g" \
+		/etc/monit/monitrc; \
+	fi
+	sudo monit reload
+
+
+# Encrypt, stop Docker boot and add decrypt.sh for HDC managed solution
+hdc-encrypt: hdc-packages hdc-config-docker
+	sudo cp hdc/decrypt.sh /hdc/
+	sudo docker stop gateway_db || true
+	sudo mkdir -p /hdc/.encrypted /hdc/data
+	sudo encfs --public /hdc/.encrypted /hdc/data/
+	sudo chmod a+rx /hdc/data
+	sudo chmod a+rx /hdc/.encrypted
+
+
+# Firewall, limit to HDC servers for HDC managed solution
+hdc-firewall: hdc-packages
+	sudo ufw allow from 142.104.128.120
+	sudo ufw allow from 142.104.128.121
+	sudo ufw allow from 149.56.154.244
+	sudo ufw --force enable
+	sudo ufw status verbose
+
+
+# Packages required for HDC managed solution
+# TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
+hdc-packages: config-docker
+	sudo apt-get update
+	PACKAGES="autossh encfs monit ufw"; \
+	for p in $${PACKAGES}; \
+	do \
+		which $${p} || sudo apt-get install $${p} -y; \
+	done
+
+
+# SSH key creation and testing for HDC managed solution
 hdc-ssh: env
 	if( sudo test ! -e /root/.ssh/id_rsa ); \
 	then \
@@ -99,42 +142,6 @@ hdc-ssh: env
 hdc-user: env
 	[ "$$( getent passwd exporter )" ]|| \
 		sudo useradd -m -d ${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
-
-
-# Packages required for HDC managed solution
-# TODO: switch to apt when Ubuntu 14.04 is dropped
-hdc-packages: config-docker
-	sudo apt-get update
-	PACKAGES="autossh encfs monit ufw"; \
-	for p in $${PACKAGES}; \
-	do \
-		which $${p} || sudo apt-get install $${p} -y; \
-	done
-
-
-# Monit config for HDC managed solution
-hdc-config-monit: hdc-packages
-	sudo cp ./hdc/monit_* /etc/monit/conf.d/
-	sudo cat /etc/monit/conf.d/monit_*
-	sudo sed -i "s/44xxx/`expr 44000 + $${GATEWAY_ID}`/" /etc/monit/conf.d/monit_*
-	if( sudo grep --quiet "# set httpd port 2812 and" /etc/monit/monitrc ); \
-	then \
-	sudo sed -i \
-		-e "/include \/etc\/monit\/conf-enabled\// s/^/#/" \
-		-e "/set httpd port 2812 and/s/^#//g" \
-		-e "/use address localhost/s/^#//g" \
-		-e "/allow localhost/s/^#//g" \
-		/etc/monit/monitrc; \
-	fi
-	sudo monit reload
-
-
-hdc-firewall: hdc-packages
-	sudo ufw allow from 142.104.128.120
-	sudo ufw allow from 142.104.128.121
-	sudo ufw allow from 149.56.154.244
-	sudo ufw --force enable
-	sudo ufw status verbose
 
 
 ################
