@@ -2,7 +2,7 @@
 #
 # Halt on errors or unset variables
 #
-set -eux
+set -eu
 
 
 # Decrypt private data folders
