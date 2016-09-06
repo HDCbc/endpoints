@@ -57,15 +57,25 @@ env:
 		. ./config.env
 
 
-# Make and test ssh keys, can be provided ahead of time
-ssh: env
-	@	sudo mkdir -p ${PATH_SSH}
-	@	sudo ssh-keygen -b 4096 -t rsa -N "" -C ep${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f ${PATH_SSH}/id_rsa || true
-	@	cat ${PATH_SSH}/id_rsa.pub
-	@	echo
-	@	echo "Please provide ${PATH_SSH}/id_rsa.pub (above), a list of participating"
-	@	echo "physician CPSIDs and all paperwork to the PDC at admin@pdcbc.ca."
-	@	echo
+# SSH for HDC managed solution
+hdc-ssh: env
+	if( sudo test ! -e /root/.ssh/id_rsa ); \
+	then \
+	    sudo ssh-keygen -b 4096 -t rsa -N \"\" -C ep${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f /root/.ssh/id_rsa; \
+	fi
+
+	if ( sudo ssh -p 2774 142.104.128.120 /app/test/ssh_landing.sh ); \
+	then \
+        echo 'Connection succesful!'; \
+	else \
+        echo; \
+        sudo cat /root/.ssh/id_rsa.pub; \
+        echo; \
+        echo 'ERROR: unable to connect to 142.104.128.120'; \
+        echo; \
+        echo 'Please verify the ssh public key (above) has been provided to admin@hdcbc.ca.'; \
+		sleep 5; \
+	fi
 
 
 # User for HDC managed solution
