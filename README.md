@@ -14,7 +14,7 @@ Information:
 * IP address data will be exported from
 
 
-Install media:
+Operating system:
 
 * [Ubuntu Server 16.04 (LTS)](http://www.ubuntu.com/download/server/thank-you?version=16.04.1&architecture=amd64)
 
@@ -95,8 +95,6 @@ Run Makefile
 * `cd /hdc/endpoint`
 * `make hdc`
 
-Follow defaults when setting up encfs.  Choose and record a strong password!
-
 
 ### b) Self-Managed Solution
 
@@ -107,8 +105,8 @@ Run Makefile
 
 ### id_rsa.pub
 
-This will be output if ssh to HDC has not been pre-configured.  Please send it
-to admin@hdcbc.ca.
+This will be output shortly after configuring config.env in the next step.
+Please send it (or a copy/paste with the line breaks intact) to admin@hdcbc.ca.
 
 
 ## 4. Config.env
@@ -121,7 +119,19 @@ Configure config.env:
 * DATA_FROM  - exporting server, to be allowed through the firewall
 
 
-## 5. Post Installation Checklist
+## 5. SSH - HDC Managed Solution
+
+For HDC managed solutions id_rsa.pub will be echoed to the screen.  Please send
+this (file: /root/.ssh/id_rsa.pub, or copy/paste with line breaks intact) to
+admin@hdcbc.ca.
+
+
+## 6. File Encryption - HDC Managed Solution
+
+Follow defaults when setting up encfs.  Choose and record a strong password!
+
+
+## 7. Post Installation Checklist
 
 Send the following information to admin@pdcbc.ca:
 
@@ -131,3 +141,25 @@ Send the following information to admin@pdcbc.ca:
   * This will be output during step 3.
 
 Verify that monit, ufw and all tunnels are functioning
+
+
+## 8. Operation an Endpoint
+
+Self-managed Endpoints should work as-is, assuming key are in place and there
+are no other complications.
+
+HDC-managed Endpoints will not allow Docker to start or access to the exporting
+server until /hdc/decrypt.sh is run and the encryption password provided.  The
+HDC will monitor and intervene as necessary.
+
+
+## 9. Troubleshooting
+
+View logs with systemd (Ubuntu 16.04 only)
+
+* `cd /hdc/endpoint`
+
+
+View logs files on host
+
+* `tail -f /var/log/auth.log`
