@@ -22,7 +22,7 @@ env:
 
 
 # Additional setup for HDC managed solutions
-hdc-make: env
+hdc-make: env config-docker
 	@	$(MAKE) -C hdc
 
 
