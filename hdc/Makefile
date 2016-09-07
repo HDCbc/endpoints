@@ -75,7 +75,7 @@ hdc-ssh:
 	@	. ../config.env; \
 		if( sudo test ! -e /root/.ssh/id_rsa ); \
 		then \
-		    sudo ssh-keygen -b 4096 -t rsa -N \"\" -C ep$${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f /root/.ssh/id_rsa; \
+		    sudo ssh-keygen -b 4096 -t rsa -N "" -C ep$${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f /root/.ssh/id_rsa; \
 		fi
 	@	if ( sudo ssh -p 2774 142.104.128.120 /app/test/ssh_landing.sh ); \
 		then \
@@ -87,7 +87,7 @@ hdc-ssh:
 	        echo 'ERROR: unable to connect to 142.104.128.120'; \
 	        echo; \
 	        echo 'Please verify the ssh public key (above) has been provided to admin@hdcbc.ca.'; \
-			sleep 5; \
+			sleep 15; \
 		fi
 
 
