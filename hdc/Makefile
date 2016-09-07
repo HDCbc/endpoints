@@ -77,7 +77,7 @@ hdc-ssh:
 		then \
 		    sudo ssh-keygen -b 4096 -t rsa -N "" -C ep$${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f /root/.ssh/id_rsa; \
 		fi
-	@	if ( sudo ssh -p 2774 142.104.128.120 /app/test/ssh_landing.sh ); \
+	@	if ( sudo ssh -p 2774 142.104.128.120 -o BatchMode=yes /app/test/ssh_landing.sh ); \
 		then \
 	        echo 'Connection succesful!'; \
 		else \
