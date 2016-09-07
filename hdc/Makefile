@@ -4,8 +4,6 @@
 
 default: hdc-user hdc-packages hdc-config-monit hdc-firewall hdc-encrypt hdc-ssh
 
-wrapup: hdc-wrapup
-
 
 ###################
 # Individual jobs #
@@ -115,12 +113,3 @@ hdc-user:
 				echo 'cd /hdc/'; \
 			) >> ~/.bashrc; \
 		fi
-
-
-# Apply final settings and reboot
-hdc-wrapup:
-	@	sudo apt-get update
-	@	sudo apt-get upgrade -y
-	@	sudo apt-get dist-upgrade -y
-	@	sudo update-grub
-	@	sudo reboot now
