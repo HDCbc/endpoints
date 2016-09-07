@@ -4,7 +4,7 @@
 
 default: deploy
 
-hdc: hdc-make deploy hdc-wrapup
+hdc: hdc-pre-deploy deploy hdc-post-deploy
 
 
 ###################
@@ -20,13 +20,18 @@ env:
 		fi
 
 
+# Create HDC ssh key at beginning of setup, for convenience
+hdc-ssh: env
+	$(MAKE) hdc-ssh -C hdc
+
+
 # Additional setup for HDC managed solutions
-hdc-make: env config-docker
+hdc-pre-deploy: hdc-ssh config-docker
 	@	$(MAKE) -C hdc
 
 
 # Additional setup for HDC managed solutions
-hdc-wrapup: env config-docker
+hdc-post-deploy: env
 	@	$(MAKE) -C hdc wrapup
 
 

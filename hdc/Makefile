@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: hdc-ssh hdc-user hdc-packages hdc-config-monit hdc-firewall hdc-encrypt
+default: hdc-user hdc-packages hdc-config-monit hdc-firewall hdc-encrypt hdc-ssh
 
 wrapup: hdc-wrapup
 
