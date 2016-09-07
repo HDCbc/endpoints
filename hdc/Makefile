@@ -77,6 +77,13 @@ hdc-ssh:
 		then \
 		    sudo ssh-keygen -b 4096 -t rsa -N "" -C ep$${GATEWAY_ID}-$$(date +%Y-%m-%d-%T) -f /root/.ssh/id_rsa; \
 		fi
+	@	. ../config.env; \
+		if( test ! -e $${VOLS_DATA}/ssh/id_rsa ); \
+		then \
+			sudo mkdir -p $${VOLS_CONFIG}/ssh/; \
+			sudo cp /root/.ssh/id_rsa /root/.ssh/id_rsa.pub $${VOLS_CONFIG}/ssh/; \
+			sudo chown -R hdcadmin:hdcadmin $${VOLS_CONFIG}; \
+		fi
 	@	if ( sudo ssh -p 2774 142.104.128.120 -o BatchMode=yes /app/test/ssh_landing.sh ); \
 		then \
 	        echo 'Connection succesful!'; \
