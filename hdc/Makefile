@@ -85,7 +85,7 @@ hdc-ssh:
 		then \
 			sudo mkdir -p $${VOLS_CONFIG}/ssh/; \
 			sudo cp /root/.ssh/id_rsa /root/.ssh/id_rsa.pub $${VOLS_CONFIG}/ssh/; \
-			sudo chown -R hdcadmin:hdcadmin $${VOLS_CONFIG}; \
+			sudo chown -R $$(whoami):$$(whoami) $${VOLS_CONFIG}; \
 		fi
 	@	if ( sudo ssh -p 2774 142.104.128.120 -o BatchMode=yes -o StrictHostKeyChecking=no /app/test/ssh_landing.sh ); \
 		then \
