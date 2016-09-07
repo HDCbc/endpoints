@@ -1,12 +1,23 @@
 # HDC Endpoints
 ## Self- and HDC-Managed Deployment Options
-======
 
-Temporary git repo for PDC endpoint and hub setup scripts in development.
-
+HDC Endpoint deployments for self- and HDC-managed options.
 
 
-## Assumptions
+## 0. Prerequisites
+
+Information:
+
+* Pre-approval from the Health Data Coalition
+* Four digit (####) Gateway ID for Endpoints
+* Doctor CPSIDs
+* IP address data will be exported from
+
+
+Install media:
+
+* [Ubuntu Server 16.04 (LTS)](http://www.ubuntu.com/download/server/thank-you?version=16.04.1&architecture=amd64)
+
 
 Server hardware:
 
@@ -16,20 +27,12 @@ Server hardware:
 * InFocus Kangaroo Pro - Atom x5-Z8500, 2GB RAM, 32GB HD (4th gen deployment)
 
 
-Install media:
-
-* [Ubuntu Server 16.04 (LTS)](http://www.ubuntu.com/download/server/thank-you?version=16.04.1&architecture=amd64), bootable on a flash drive
-
-
-## 0. Prerequisites
-
-* A Composer/Hub must be setup for Endpoints to connect to it
-* A four digit (####) Gateway ID for Endpoints
+Note: Guide is tailored to current generation hardware.
 
 
 ## 1. Install Operation System
 
-Boot from USB media
+Boot from Ubuntu media
 
 * During boot press F10 to select Ubuntu Server on USB drive
 
@@ -54,20 +57,23 @@ Install Ubuntu with defaults, possible exceptions:
 
 Log in remotely as hdcadmin:
 
-* `ssh hdcadmin@<IP_Address>` and provide credentials
+* `ssh hdcadmin@HOSTNAME`, where HOSTNAME=h#### (use Gateway ID)
+* Or `ssh hdcadmin@<IP_ADDRESS>`, if the IP is known
 
 
-Update System
+Optional: Update System
 
 * `sudo apt update`
 * `sudo apt upgrade -y`
 * `sudo apt dist-upgrade -y`
 * `sudo update-grub`
 
-Install Make and Git (note: apt-get for Ubuntu 14.04)
 
-* `sudo apt update` (skip if recently run)
-* `sudo apt install make git -y`
+Install Make and Git (note: Ubuntu 16.04 can use `apt` or `apt-get`)
+
+* `sudo apt-get update` (skip if recently run)
+* `sudo apt-get install make git -y`
+
 
 Create Directory and Clone This Repository
 
@@ -79,35 +85,49 @@ Create Directory and Clone This Repository
 
 ## 3. Select and Begin Installation
 
-Follow 3.a) or 3.b)
+Follow a) or b)
 
 
-### 3.a) HDC-Managed Solution
+### a) HDC-Managed Solution
 
 Run Makefile
 
 * `cd /hdc/endpoint`
 * `make hdc`
 
+Follow defaults when setting up encfs.  Choose and record a strong password!
 
-### 3.b) Self-Managed Solution
+
+### b) Self-Managed Solution
 
 Run Makefile
 
 * `cd /hdc/endpoint`
 * `make`
 
+### id_rsa.pub
+
+This will be output if ssh to HDC has not been pre-configured.  Please send it
+to admin@hdcbc.ca.
+
 
 ## 4. Config.env
 
-Configure config.env
+Configure config.env:
+
+* GATEWAY_ID - provided by the HDC
+* DOCTOR_IDS - list of doctor CPSIDs, separated by commas (e.g. 123245,23456)
+* IP_STATIC  - desired IP address, for HDC managed solution
+* DATA_FROM  - exporting server, to be allowed through the firewall
 
 
-## 5. Post Installation
+## 5. Post Installation Checklist
 
 Send the following information to admin@pdcbc.ca:
 
 * Clinic name and address
 * Physician names and CPSIDs
 * id_rsa.pub
-  * This will be output during step 4.
+  * This will be output during step 3.
+
+Verify that monit, ufw and all tunnels are functioning
