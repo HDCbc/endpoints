@@ -4,13 +4,12 @@
 
 default: deploy
 
-hdc: hdc-make deploy
+hdc: hdc-make deploy hdc-wrapup
 
 
 ###################
 # Individual jobs #
 ###################
-
 
 # Configures and sources environment, used as a prerequisite
 env:
@@ -24,6 +23,11 @@ env:
 # Additional setup for HDC managed solutions
 hdc-make: env config-docker
 	@	$(MAKE) -C hdc
+
+
+# Additional setup for HDC managed solutions
+hdc-wrapup: env config-docker
+	@	$(MAKE) -C hdc wrapup
 
 
 # Check prerequisites, pull/build and deploy containers, then test ssh keys

@@ -2,13 +2,14 @@
 # General Jobs #
 ################
 
-default: hdc-ssh hdc-user hdc-packages hdc-firewall hdc-encrypt
+default: hdc-ssh hdc-user hdc-packages hdc-config-monit hdc-firewall hdc-encrypt
+
+wrapup: hdc-wrapup
 
 
 ###################
 # Individual jobs #
 ###################
-
 
 # Stop Docker at boot for Ubuntu 14.04 (docker.conf) and 16.04 (systemd)
 hdc-config-docker:
@@ -17,7 +18,7 @@ hdc-config-docker:
 
 
 # Monit config
-hdc-config-monit: hdc-packages
+hdc-config-monit: hdc-packages hdc-ssh
 	@	sudo cp ./monit_* /etc/monit/conf.d/
 	@	sudo cat /etc/monit/conf.d/monit_*
 	@	. ../config.env; \
@@ -31,7 +32,9 @@ hdc-config-monit: hdc-packages
 			-e "/allow localhost/s/^#//g" \
 			/etc/monit/monitrc; \
 		fi
-		sudo monit reload
+	@	sudo monit reload
+	@	sudo monit start autossh
+	@	sudo monit start anchor
 
 
 # Encrypt, stop Docker boot and add decrypt.sh
@@ -112,3 +115,12 @@ hdc-user:
 				echo 'cd /hdc/'; \
 			) >> ~/.bashrc; \
 		fi
+
+
+# Apply final settings and reboot
+hdc-wrapup:
+	@	sudo apt-get update
+	@	sudo apt-get upgrade -y
+	@	sudo apt-get dist-upgrade -y
+	@	sudo update-grub
+	@	sudo reboot now
