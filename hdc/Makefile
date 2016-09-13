@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: hdc-user hdc-packages hdc-config-monit hdc-firewall hdc-encrypt hdc-ssh
+default: hdc-config-dock hdc-user hdc-packages hdc-config-monit hdc-firewall hdc-encrypt hdc-ssh
 
 
 ###################
@@ -33,6 +33,16 @@ hdc-config-monit: hdc-packages hdc-ssh
 	@	sudo monit reload
 	@	sudo monit start autossh
 	@	sudo monit start anchor
+
+
+# Stop Ubuntu 15.10+ renaming eth0 when InFocus Kangaroo Pro dock is swapped
+hdc-config-dock:
+	if( ! sudo grep --quiet 'NAME="eth0"' /lib/udev/rules.d/*.rules ); \
+	then \
+		( \
+			echo 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="asix", ATTR{address}=="?*", ATTR{dev_id}=="0x0", ATTR{type}=="1", NAME="eth0"'; \
+		) | sudo tee -a /lib/udev/rules.d/60-persistent-net.rules; \
+	fi
 
 
 # Encrypt, stop Docker boot and add decrypt.sh
