@@ -43,6 +43,15 @@ hdc-config-dock:
 			echo 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="asix", ATTR{address}=="?*", ATTR{dev_id}=="0x0", ATTR{type}=="1", NAME="eth0"'; \
 		) | sudo tee -a /lib/udev/rules.d/60-persistent-net.rules; \
 	fi
+	if( ! sudo grep --quiet 'iface eth0 inet dhcp' /etc/network/interfaces ); \
+	then \
+		( \
+		echo ''; \
+		echo '# The primary network interface'; \
+		echo 'auto eth0'; \
+		echo 'iface eth0 inet dhcp'; \
+		) | sudo tee -a /etc/network/interfaces; \
+	fi
 
 
 # Encrypt, stop Docker boot and add decrypt.sh
