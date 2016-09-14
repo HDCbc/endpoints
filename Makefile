@@ -44,7 +44,7 @@ env:
 
 # Docker and Docker Compose installs
 config-docker:
-	@	which docker-compose || wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/docker/docker_setup.sh | sh
+	@	which docker-compose || wget -qO- https://raw.githubusercontent.com/HDCbc/devops/master/deploy/docker_setup.sh | sh
 
 
 # Disable Transparent Hugepage, for MongoDb
