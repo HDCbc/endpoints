@@ -2,21 +2,15 @@
 # General Jobs #
 ################
 
-default: hdc-config-dock hdc-user hdc-packages hdc-config-monit hdc-firewall hdc-encrypt hdc-ssh
+default: hardware user packages monit firewall encrypt ssh
 
 
 ###################
 # Individual jobs #
 ###################
 
-# Stop Docker at boot for Ubuntu 14.04 (docker.conf) and 16.04 (systemd)
-hdc-config-docker:
-	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
-	@	sudo systemctl disable docker || true
-
-
 # Monit config
-hdc-config-monit: hdc-packages hdc-ssh
+monit: packages ssh
 	@	sudo cp ./monit_* /etc/monit/conf.d/
 	@	sudo cat /etc/monit/conf.d/monit_*
 	@	. ../config.env; \
@@ -36,26 +30,29 @@ hdc-config-monit: hdc-packages hdc-ssh
 
 
 # Stop Ubuntu 15.10+ renaming eth0 when InFocus Kangaroo Pro dock is swapped
-hdc-config-dock:
-	if( ! sudo grep --quiet 'NAME="eth0"' /lib/udev/rules.d/*.rules ); \
-	then \
-		( \
-			echo 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="asix", ATTR{address}=="?*", ATTR{dev_id}=="0x0", ATTR{type}=="1", NAME="eth0"'; \
-		) | sudo tee -a /lib/udev/rules.d/60-persistent-net.rules; \
-	fi
-	if( ! sudo grep --quiet 'iface eth0 inet dhcp' /etc/network/interfaces ); \
-	then \
-		( \
-		echo ''; \
-		echo '# The primary network interface'; \
-		echo 'auto eth0'; \
-		echo 'iface eth0 inet dhcp'; \
-		) | sudo tee -a /etc/network/interfaces; \
-	fi
+hardware:
+	@	if( ! sudo grep --quiet 'NAME="eth0"' /lib/udev/rules.d/*.rules ); \
+		then \
+			( \
+				echo 'SUBSYSTEM=="net", ACTION=="add", DRIVERS=="asix", ATTR{address}=="?*", ATTR{dev_id}=="0x0", ATTR{type}=="1", NAME="eth0"'; \
+			) | sudo tee -a /lib/udev/rules.d/60-persistent-net.rules; \
+		fi
+	@	if( ! sudo grep --quiet 'iface eth0 inet dhcp' /etc/network/interfaces ); \
+		then \
+			( \
+			echo ''; \
+			echo '# The primary network interface'; \
+			echo 'auto eth0'; \
+			echo 'iface eth0 inet dhcp'; \
+			) | sudo tee -a /etc/network/interfaces; \
+		fi
 
 
-# Encrypt, stop Docker boot and add decrypt.sh
-hdc-encrypt: hdc-packages hdc-config-docker
+# Encrypt, stop Docker at boot and add decrypt.sh
+# Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
+encrypt: packages
+	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
+	@	sudo systemctl disable docker || true
 	@	sudo cp ./decrypt.sh /hdc/
 	@	sudo docker stop gateway_db || true
 	@	if [ ! -d "/hdc/.encrypted" ]; \
@@ -67,7 +64,7 @@ hdc-encrypt: hdc-packages hdc-config-docker
 
 
 # Firewall, limit to HDC servers
-hdc-firewall: hdc-packages
+firewall: packages
 	@	sudo ufw allow from 142.104.128.120
 	@	sudo ufw allow from 142.104.128.121
 	@	sudo ufw allow from 149.56.154.244
@@ -76,7 +73,7 @@ hdc-firewall: hdc-packages
 
 
 # Packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
-hdc-packages:
+packages:
 	@	PACKAGES="autossh encfs monit ufw"; \
 		MISSING=0; \
 		for p in $${PACKAGES}; \
@@ -91,7 +88,7 @@ hdc-packages:
 
 
 # SSH key creation and testing
-hdc-ssh:
+ssh:
 	@	. ../config.env; \
 		if( sudo test ! -e /root/.ssh/id_rsa ); \
 		then \
@@ -119,7 +116,7 @@ hdc-ssh:
 
 
 # Import export user and current/admin user ~/.bashrc
-hdc-user:
+user:
 	@	. ../config.env; \
 		[ "$$( getent passwd exporter )" ]|| \
 			sudo useradd -m -d $${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
