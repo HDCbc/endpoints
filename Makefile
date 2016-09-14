@@ -30,7 +30,7 @@ hdc-prep: hdc-ssh config-docker
 
 # Create HDC ssh key at beginning of setup, for convenience
 hdc-ssh: env
-	$(MAKE) hdc-ssh -C hdc
+	$(MAKE) ssh -C hdc
 
 
 # Configures and sources environment, used as a prerequisite
