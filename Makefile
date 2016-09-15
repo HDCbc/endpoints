@@ -13,14 +13,13 @@ hdc: hdc-prep deploy upgrade-reboot
 
 # Check prerequisites, pull/build and deploy containers, then test ssh keys
 deploy: env config-docker config-mongodb
-	@	[ $(MODE) != "dev" ] || \
-	[ -s ./docker/dev.yml ] || \
-	sudo cp ./docker/dev.yml-sample ./docker/dev.yml
+	@	[ $(MODE) != "dev" ]||[ -s ./docker/dev.yml ] || \
+			sudo cp ./docker/dev.yml-sample ./docker/dev.yml
 	. ./config.env; \
-	sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) pull; \
-	sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) build; \
-	sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) up -d
-	@	sudo docker exec -ti gateway /ssh_test.sh
+		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) pull; \
+		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) build; \
+		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) up -d
+	@	sudo docker exec gateway /ssh_test.sh
 
 
 # Additional setup for HDC managed solutions
