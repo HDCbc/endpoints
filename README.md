@@ -4,6 +4,14 @@
 HDC Endpoint deployments for self- and HDC-managed options.
 
 
+## Quick Start (Preemptive TL;DR)
+
+Install Ubuntu 16.04, type the following and follow the directions.  This
+repository doesn't even need to be cloned first.
+
+* `wget -qO- get.pdcbc.ca | sh`
+
+
 ## 0. Prerequisites
 
 Information:
