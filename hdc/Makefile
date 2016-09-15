@@ -63,11 +63,13 @@ encrypt: packages
 	@	sudo chmod a+rx /hdc/.encrypted /hdc/data
 
 
-# Firewall, limit to HDC servers
+# Firewall, limit to HDC servers (and host for Vagrant)
 firewall: packages
 	@	sudo ufw allow from 142.104.128.120
 	@	sudo ufw allow from 142.104.128.121
 	@	sudo ufw allow from 149.56.154.244
+	@	[ ! -d /vagrant ]|| \
+			sudo ufw allow from 10.0.2.2
 	@	sudo ufw --force enable
 	@	sudo ufw status verbose
 
