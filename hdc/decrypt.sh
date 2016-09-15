@@ -28,10 +28,18 @@ set -eu
 	sudo ufw allow from ${DATA_FROM}
 
 
-# Add static IP, if provided and address not yes applied
+# Add static IP, if provided and not already in use
 #
 if [ ! -z ${IP_STATIC} ]&&[ ! "$( hostname -I | grep ${IP_STATIC} )" ]
 then
-	ETHERNAME="$( ifconfig | grep 'enx\|em1' | awk '{print $1}' )"
-	sudo ip addr add ${IP_STATIC} dev ${ETHERNAME}
+	# Grab Ethernet ports, filter (virtua, docker) and keep only one result
+	#
+	ETHERNAME="$( ifconfig | grep 'Ethernet' | grep -v 'docker\|veth' | awk '{print $1}' )"
+	set -- ${ETHERNAME}
+	ETHERNAME=${1}
+
+	# Add IP to $ETHERNAME, if one was found
+	#
+	[ ! "${ETHERNAME}" ]|| \
+		sudo ip addr add ${IP_STATIC} dev ${ETHERNAME}
 fi
