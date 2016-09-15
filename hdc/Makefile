@@ -53,8 +53,9 @@ hardware:
 encrypt: packages
 	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
 	@	sudo systemctl disable docker || true
-	@	sudo cp ./decrypt.sh /hdc/
-	@	sudo docker stop gateway_db || true
+	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
+		sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
+		sudo docker stop gateway_db || true
 	@	if [ ! -d "/hdc/.encrypted" ]; \
 		then \
 			sudo mkdir -p /hdc/.encrypted /hdc/data; \
