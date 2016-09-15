@@ -37,7 +37,7 @@ env:
 	@	if ! [ -s ./config.env ]; \
 		then \
 		        cp ./config.env-sample ./config.env; \
-		        nano config.env; \
+		        vim config.env; \
 		fi
 
 
