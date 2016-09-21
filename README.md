@@ -49,24 +49,26 @@ Install Ubuntu with defaults, possible exceptions:
 
 * Country: Canada
 * Keyboard: English (US)
-* Hostname: h#### (use Gateway ID)
+* Hostname: hdc-#### (use Gateway ID)
 * Full name: HDC Admin
-* Username: hdcadmin
+* Username: hdc
 * Encrypt home: Yes
 * Time zone: Pacific
 * Partitioning: Guided - use entire disk and set up LVM
   * MMC/SD card #1
 * Force UEFI installation: Yes
 * Manage upgrades: No automatic updates
-* Software selection: OpenSSH server
+* Software selection:
+  * select OpenSSH server (required)
+  * deselect standard system utilities (optional)
 
 
 ## 2. Prepare System
 
-Log in remotely as hdcadmin:
+Log in remotely as hdc:
 
-* `ssh hdcadmin@HOSTNAME`, where HOSTNAME=h#### (use Gateway ID)
-* Or `ssh hdcadmin@<IP_ADDRESS>`, if the IP is known
+* `ssh hdc@HOSTNAME`, where HOSTNAME=h#### (use Gateway ID)
+* Or `ssh hdc@<IP_ADDRESS>`, if the IP is known
 
 
 Optional: Update System
@@ -86,7 +88,7 @@ Install Make and Git (note: Ubuntu 16.04 can use `apt` or `apt-get`)
 Create Directory and Clone This Repository
 
 * `sudo mkdir /hdc/`
-* `sudo chown -R hdcadmin:hdcadmin /hdc/`
+* `sudo chown -R hdc:hdc /hdc/`
 * `cd /hdc/`
 * `git clone https://github.com/HDCbc/endpoint`
 
