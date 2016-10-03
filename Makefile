@@ -32,13 +32,14 @@ hdc-ssh: env
 	$(MAKE) ssh -C hdc
 
 
-# Configures and sources environment, used as a prerequisite
+# Configures and sources environment, used as a prerequisite; clip trailing /s
 env:
 	@	if ! [ -s ./config.env ]; \
 		then \
 		        cp ./config.env-sample ./config.env; \
 		        vim config.env; \
 		fi
+		sed -i "s|/$||" config.env
 
 
 # Docker and Docker Compose installs
