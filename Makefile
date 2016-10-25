@@ -39,7 +39,7 @@ env:
 		        cp ./config.env-sample ./config.env; \
 		        vim config.env; \
 		fi
-		sed -i "s|/$||" config.env
+		sed -i "s|/$$||" config.env
 
 
 # Docker and Docker Compose installs
