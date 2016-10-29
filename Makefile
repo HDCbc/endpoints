@@ -15,11 +15,33 @@ hdc: hdc-prep deploy upgrade-reboot
 deploy: env config-docker config-mongodb
 	@	[ $(MODE) != "dev" ]||[ -s ./docker/dev.yml ] || \
 			sudo cp ./docker/dev.yml-sample ./docker/dev.yml
-	. ./config.env; \
+	@	. ./config.env; \
 		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) pull; \
 		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) build; \
 		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) up -d
 	@	sudo docker exec gateway /ssh_test.sh
+
+
+# Import SQL and export E2E to Gateway containers
+import:
+	@	sudo docker pull hdcbc/e2e_oscar:"${TAG}"
+	@	. ./config.env; \
+		RECORDS_BEFORE=$$( sudo docker exec -ti gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
+		TIME_BEFORE=$$( date +%s ); \
+		SQL_PATH=$${DIR:-"$${VOLS_DATA}/import/"}; \
+		SQL_PATH=$$( realpath $${SQL_PATH} ); \
+		sudo docker run -ti --rm --name e2e-oscar -h e2e-oscar --link gateway --volume "$${SQL_PATH}":/import:rw hdcbc/e2e_oscar:"${TAG}"; \
+		TIME_AFTER=$$( date +%s ); \
+		TIME_TOTAL=$$( expr "$${TIME_AFTER}" - "$${TIME_BEFORE}" ); \
+		RECORDS_AFTER=$$( sudo docker exec -ti gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
+		echo; \
+		echo "Records"; \
+		echo "  Before:  $${RECORDS_BEFORE}"; \
+		echo "  After:   $${RECORDS_AFTER}"; \
+		echo; \
+		echo "Export time"; \
+		echo "  Seconds: $${TIME_TOTAL}"; \
+		echo
 
 
 # Additional setup for HDC managed solutions
@@ -39,7 +61,7 @@ env:
 		        cp ./config.env-sample ./config.env; \
 		        vim config.env; \
 		fi
-		sed -i "s|/$$||" config.env
+	@	sed -i "s|/$$||" config.env
 
 
 # Docker and Docker Compose installs
