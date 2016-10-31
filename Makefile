@@ -26,14 +26,14 @@ deploy: env config-docker config-mongodb
 import:
 	@	sudo docker pull hdcbc/e2e_oscar:"${TAG}"
 	@	. ./config.env; \
-		RECORDS_BEFORE=$$( sudo docker exec -ti gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
+		RECORDS_BEFORE=$$( sudo docker exec gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
 		TIME_BEFORE=$$( date +%s ); \
 		SQL_PATH=$${DIR:-"$${VOLS_DATA}/import/"}; \
 		SQL_PATH=$$( realpath $${SQL_PATH} ); \
-		sudo docker run -ti --rm --name e2e-oscar -h e2e-oscar --link gateway --volume "$${SQL_PATH}":/import:rw hdcbc/e2e_oscar:"${TAG}"; \
+		sudo docker run --rm --name e2e-oscar -h e2e-oscar --link gateway --volume "$${SQL_PATH}":/import:rw hdcbc/e2e_oscar:"${TAG}"; \
 		TIME_AFTER=$$( date +%s ); \
 		TIME_TOTAL=$$( expr "$${TIME_AFTER}" - "$${TIME_BEFORE}" ); \
-		RECORDS_AFTER=$$( sudo docker exec -ti gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
+		RECORDS_AFTER=$$( sudo docker exec gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
 		echo; \
 		echo "Records"; \
 		echo "  Before:  $${RECORDS_BEFORE}"; \
