@@ -52,6 +52,35 @@ auto-import-packages:
 			echo $$( whoami ) | sudo tee -a /etc/incron.allow
 
 
+# Auto-import wrapper, for cron and incron
+auto-import-wrapper:
+	. ./config.env; \
+	SCRIPT="/sql_import_wrapper.sh";\
+	( \
+		echo '#!/bin/sh'; \
+		echo '#'; \
+		echo '# Halt on errors or unassigned variables'; \
+		echo '#'; \
+		echo 'set -eu'; \
+		echo ''; \
+		echo ''; \
+		echo '# Import if SQL files are present (incrontab can not trigger by wildcard)'; \
+		echo '#'; \
+		echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" )'; \
+		echo 'if [ $${#SQL_CHECK[@]} -gt 0 ]'; \
+		echo 'then'; \
+		echo '	cd '$$( pwd ); \
+		echo '	make import'; \
+		echo 'fi'; \
+		echo ''; \
+		echo ''; \
+		echo '# Log'; \
+		echo '#'; \
+		echo 'echo $$( date +%Y-%m-%d-%T ) $${SQL_CHECK} >> '$$( pwd )'/import.log'; \
+	) | sudo tee $${SCRIPT}; \
+		sudo chmod +x $${SCRIPT}
+
+
 # Additional setup for HDC managed solutions
 hdc-prep: hdc-ssh config-docker
 	@	$(MAKE) -C hdc
