@@ -4,7 +4,9 @@
 
 default: deploy
 
-hdc: hdc-prep deploy upgrade-reboot
+auto-import: auto-import-cron auto-import-incron
+
+hdc: hdc-prep deploy auto-import upgrade-reboot
 
 
 ###################
