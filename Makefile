@@ -44,6 +44,12 @@ import:
 		echo
 
 
+# Auto-import (cron, incron) packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
+auto-import-packages:
+		( which cron && which incrond )|| \
+			( sudo apt-get update && sudo apt-get install cron incron -y)
+
+
 # Additional setup for HDC managed solutions
 hdc-prep: hdc-ssh config-docker
 	@	$(MAKE) -C hdc
