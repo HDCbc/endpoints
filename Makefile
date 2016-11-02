@@ -53,56 +53,51 @@ auto-import-packages:
 
 
 # Auto-import wrapper, for cron and incron
-auto-import-wrapper:
-	. ./config.env; \
-	SCRIPT="/sql_import_wrapper.sh";\
-	( \
-		echo '#!/bin/sh'; \
-		echo '#'; \
-		echo '# Halt on errors or unassigned variables'; \
-		echo '#'; \
-		echo 'set -eu'; \
-		echo ''; \
-		echo ''; \
-		echo '# Import if SQL files are present (incrontab can not trigger by wildcard)'; \
-		echo '#'; \
-		echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" )'; \
-		echo 'if [ $${#SQL_CHECK[@]} -gt 0 ]'; \
-		echo 'then'; \
-		echo '	cd '$$( pwd ); \
-		echo '	make import'; \
-		echo 'fi'; \
-		echo ''; \
-		echo ''; \
-		echo '# Log'; \
-		echo '#'; \
-		echo 'echo $$( date +%Y-%m-%d-%T ) $${SQL_CHECK} >> '$$( pwd )'/import.log'; \
-	) | sudo tee $${SCRIPT}; \
-		sudo chmod +x $${SCRIPT}
+auto-import-wrapper: auto-import-packages
+	@	. ./config.env; \
+		( \
+			echo '#!/bin/sh'; \
+			echo '#'; \
+			echo '# Halt on errors or unassigned variables'; \
+			echo '#'; \
+			echo 'set -eu'; \
+			echo ''; \
+			echo ''; \
+			echo '# Import if SQL files are present (incrontab can not trigger by wildcard)'; \
+			echo '#'; \
+			echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" )'; \
+			echo 'if [ $${#SQL_CHECK[@]} -gt 0 ]'; \
+			echo 'then'; \
+			echo '	cd '$$( pwd ); \
+			echo '	make import'; \
+			echo 'fi'; \
+			echo ''; \
+			echo ''; \
+			echo '# Log'; \
+			echo '#'; \
+			echo 'echo $$( date +%Y-%m-%d-%T ) $${SQL_CHECK} >> '$$( pwd )'/import.log'; \
+		) | sudo tee $(IMPORT_WRAPPER); \
+			sudo chmod +x $(IMPORT_WRAPPER)
 
 
-auto-import-cron:
-		SCRIPT="/sql_import_wrapper.sh";\
-		if ( ! crontab -l | grep $${SCRIPT} ); \
+auto-import-cron: auto-import-wrapper
+	@	if ( ! crontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
 			( \
 				crontab -l; \
 				echo ""; \
 				echo "# SQL-E2E Import Swapper (equivalent to: cd $$( pwd ); make import)"; \
-				echo "0 4 * * * $${SCRIPT}"; \
+				echo "0 4 * * * $(IMPORT_WRAPPER)"; \
 			) | crontab -; \
-		fi; \
-		crontab -l
+		fi
 
 
-auto-import-incron:
-		. ./config.env; \
-		SCRIPT="/sql_import_wrapper.sh";\
-		if ( ! incrontab -l | grep $${SCRIPT} ); \
+auto-import-incron: auto-import-wrapper
+	@	. ./config.env; \
+		if ( ! incrontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
-			echo $${VOLS_DATA}/import/ IN_CREATE,IN_CLOSE_WRITE,IN_MOVE_SELF $${SCRIPT} | incrontab -; \
-		fi; \
-		incrontab -l
+			echo $${VOLS_DATA}/import/ IN_CREATE,IN_CLOSE_WRITE,IN_MOVE_SELF $(IMPORT_WRAPPER) | incrontab -; \
+		fi
 
 
 # Additional setup for HDC managed solutions
@@ -173,6 +168,11 @@ sample-data:
 #
 TAG  ?= latest
 MODE ?= prod
+
+
+# Wrapper script
+#
+IMPORT_WRAPPER = "/sql_import_wrapper.sh"
 
 
 # Default is docker-compose.yml, add dev.yml for development
