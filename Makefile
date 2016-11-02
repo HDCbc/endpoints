@@ -89,7 +89,7 @@ auto-import-cron: auto-import-wrapper
 				crontab -l; \
 				echo ""; \
 				echo "# SQL-E2E Import Swapper (equivalent to: cd $$( pwd ); make import)"; \
-				echo "0 4 * * * $(IMPORT_WRAPPER)"; \
+				echo "0 * * * * $(IMPORT_WRAPPER)"; \
 			) | crontab -; \
 		fi
 
