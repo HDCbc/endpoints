@@ -81,6 +81,20 @@ auto-import-wrapper:
 		sudo chmod +x $${SCRIPT}
 
 
+auto-import-cron:
+		SCRIPT="/sql_import_wrapper.sh";\
+		if ( ! crontab -l | grep $${SCRIPT} ); \
+		then \
+			( \
+				crontab -l; \
+				echo ""; \
+				echo "# SQL-E2E Import Swapper (equivalent to: cd $$( pwd ); make import)"; \
+				echo "0 4 * * * $${SCRIPT}"; \
+			) | crontab -; \
+		fi; \
+		crontab -l
+
+
 # Additional setup for HDC managed solutions
 hdc-prep: hdc-ssh config-docker
 	@	$(MAKE) -C hdc
