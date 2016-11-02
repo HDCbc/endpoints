@@ -98,7 +98,7 @@ auto-import-incron: auto-import-wrapper
 	@	. ./config.env; \
 		if ( ! incrontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
-			echo $${VOLS_DATA}/import/ IN_CREATE,IN_CLOSE_WRITE,IN_MOVE_SELF $(IMPORT_WRAPPER) | incrontab -; \
+			echo $${VOLS_DATA}/import/ IN_CREATE,IN_MOVED_TO,IN_MODIFY $(IMPORT_WRAPPER) | incrontab -; \
 		fi
 
 
