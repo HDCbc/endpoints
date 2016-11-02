@@ -95,6 +95,16 @@ auto-import-cron:
 		crontab -l
 
 
+auto-import-incron:
+		. ./config.env; \
+		SCRIPT="/sql_import_wrapper.sh";\
+		if ( ! incrontab -l | grep $${SCRIPT} ); \
+		then \
+			echo $${VOLS_DATA}/import/ IN_CREATE,IN_CLOSE_WRITE,IN_MOVE_SELF $${SCRIPT} | incrontab -; \
+		fi; \
+		incrontab -l
+
+
 # Additional setup for HDC managed solutions
 hdc-prep: hdc-ssh config-docker
 	@	$(MAKE) -C hdc
