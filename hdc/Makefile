@@ -55,14 +55,14 @@ encrypt: packages
 	@	sudo systemctl disable docker || true
 	@	sudo systemctl stop docker || true
 	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
-		sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
-		sudo docker stop gateway_db || true
+	@	sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
 	@	if [ ! -d "/hdc/.encrypted" ]; \
 		then \
 			sudo mkdir -p /hdc/.encrypted /hdc/data; \
 			sudo encfs --public /hdc/.encrypted /hdc/data; \
 		fi
 	@	sudo chmod a+rx /hdc/.encrypted /hdc/data
+	@	sudo systemctl start docker || true
 
 
 # Firewall, limit to HDC servers (and host for Vagrant)
