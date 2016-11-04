@@ -52,6 +52,7 @@ hardware:
 # Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
 encrypt: packages
 	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
+	@	sudo docker stop gateway_db || true
 	@	sudo systemctl disable docker || true
 	@	sudo systemctl stop docker || true
 	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
