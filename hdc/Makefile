@@ -128,7 +128,7 @@ ssh:
 user:
 	@	. ../config.env; \
 		[ "$$( getent passwd exporter )" ]|| \
-			sudo useradd -m -d $${VOLS_CONFIG}/import -c "OSP Export Account" -s /bin/bash exporter
+			sudo useradd -m -d $${VOLS_DATA}/import -c "OSP Export Account" -s /bin/bash exporter
 		if( ! sudo grep --quiet "cd /hdc/" ~/.bashrc ); \
 		then \
 			( \
