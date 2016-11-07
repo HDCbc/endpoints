@@ -77,7 +77,7 @@ auto-import-wrapper: auto-import-packages
 			echo ''; \
 			echo '# Log'; \
 			echo '#'; \
-			echo 'echo $$( date +%Y-%m-%d-%T ) $${SQL_CHECK} >> '$$( pwd )'/import.log'; \
+			echo 'echo $$( date +%Y-%m-%d-%T ) $${SQL_CHECK} | sudo tee -a '$$( pwd )'/import.log'; \
 		) | sudo tee $(IMPORT_WRAPPER); \
 			sudo chmod +x $(IMPORT_WRAPPER)
 
