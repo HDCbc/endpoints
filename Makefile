@@ -50,6 +50,8 @@ import:
 auto-import-packages:
 	@	( which cron && which incrond )|| \
 			( sudo apt-get update && sudo apt-get install cron incron -y)
+	@	sudo grep -q "root" /etc/incron.allow || \
+			echo "root" | sudo tee -a /etc/incron.allow
 	@	sudo grep -q $$( whoami ) /etc/incron.allow || \
 			echo $$( whoami ) | sudo tee -a /etc/incron.allow
 
@@ -83,22 +85,22 @@ auto-import-wrapper: auto-import-packages
 
 
 auto-import-cron: auto-import-wrapper
-	@	if ( ! crontab -l | grep $(IMPORT_WRAPPER) ); \
+	@	if ( ! sudo crontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
 			( \
 				crontab -l; \
 				echo ""; \
 				echo "# SQL-E2E Import Swapper (equivalent to: cd $$( pwd ); make import)"; \
 				echo "0 * * * * $(IMPORT_WRAPPER)"; \
-			) | crontab -; \
+			) | sudo crontab -; \
 		fi
 
 
 auto-import-incron: auto-import-wrapper
 	@	. ./config.env; \
-		if ( ! incrontab -l | grep $(IMPORT_WRAPPER) ); \
+		if ( ! sudo incrontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
-			echo $${VOLS_DATA}/import/ IN_CLOSE_WRITE,IN_MOVED_TO $(IMPORT_WRAPPER) | incrontab -; \
+			echo $${VOLS_DATA}/import/ IN_CLOSE_WRITE,IN_MOVED_TO $(IMPORT_WRAPPER) | sudo incrontab -; \
 		fi
 
 
