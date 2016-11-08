@@ -57,7 +57,7 @@ auto-import-packages:
 
 
 # Auto-import wrapper, for cron and incron
-auto-import-wrapper: auto-import-packages
+auto-import-wrapper: auto-import-packages env
 	@	. ./config.env; \
 		( \
 			echo '#!/bin/sh'; \
