@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: hardware user packages monit firewall encrypt ssh
+default: hardware packages monit firewall encrypt user ssh
 
 
 ###################
