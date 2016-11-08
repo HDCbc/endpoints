@@ -12,7 +12,7 @@ default: hardware user packages monit firewall encrypt ssh
 # Monit config
 monit: packages ssh
 	@	sudo cp ./monit_* /etc/monit/conf.d/
-	@	sudo cat /etc/monit/conf.d/monit_*
+	@	sudo cat /etc/monit/conf.d/monit_autossh
 	@	. ../config.env; \
 		sudo sed -i "s/44xxx/`expr 44000 + $${GATEWAY_ID}`/" /etc/monit/conf.d/monit_*
 		if( sudo grep --quiet "# set httpd port 2812 and" /etc/monit/monitrc ); \
@@ -26,7 +26,6 @@ monit: packages ssh
 		fi
 	@	sudo monit reload
 	@	sudo monit start autossh
-	@	sudo monit start anchor
 
 
 # Stop Ubuntu 15.10+ renaming eth0 when InFocus Kangaroo Pro dock is swapped
