@@ -1,3 +1,4 @@
+
 ################
 # General Jobs #
 ################
@@ -88,10 +89,10 @@ auto-import-cron: auto-import-wrapper
 	@	if ( ! sudo crontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
 			( \
-				crontab -l; \
+				sudo crontab -l; \
 				echo ""; \
 				echo "# SQL-E2E Import Swapper (equivalent to: cd $$( pwd ); make import)"; \
-				echo "0 * * * * $(IMPORT_WRAPPER)"; \
+				echo "0 * * * Sun $(IMPORT_WRAPPER)"; \
 			) | sudo crontab -; \
 		fi
 
@@ -100,7 +101,46 @@ auto-import-incron: auto-import-wrapper
 	@	. ./config.env; \
 		if ( ! sudo incrontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
-			echo $${VOLS_DATA}/import/ IN_CLOSE_WRITE,IN_MOVED_TO $(IMPORT_WRAPPER) | sudo incrontab -; \
+			( \
+				sudo incrontab -l; \
+				echo $${VOLS_DATA}/import/ IN_CLOSE_WRITE,IN_MOVED_TO $(IMPORT_WRAPPER) | sudo incrontab -; \
+			) \
+		fi
+
+
+auto-update:
+	@	( which cron )|| \
+			( sudo apt-get update && sudo apt-get install cron -y)
+	@	( \
+			echo '#!/bin/sh'; \
+			echo '#'; \
+			echo '# Halt on errors or unassigned variables'; \
+			echo '#'; \
+			echo 'set -eu'; \
+			echo ''; \
+			echo ''; \
+			echo '# Pull and update containers, but only if Docker is running'; \
+			echo '#'; \
+			echo '( ! pgrep docker )||\'; \
+			echo '('; \
+			echo '	cd '$$( pwd ); \
+			echo '	make'; \
+			echo ')'; \
+			echo ''; \
+			echo ''; \
+			echo '# Log'; \
+			echo '#'; \
+			echo 'echo $$( date +%Y-%m-%d-%T ) | sudo tee -a '$$( pwd )'/update.log'; \
+		) | sudo tee $(UPDATE_WRAPPER); \
+			sudo chmod +x $(UPDATE_WRAPPER)
+		if ( ! sudo crontab -l | grep $(UPDATE_WRAPPER) ); \
+		then \
+			( \
+				sudo crontab -l; \
+				echo ""; \
+				echo "# Update Docker Containers"; \
+				echo "0 * * * Sat $(UPDATE_WRAPPER)"; \
+			) | sudo crontab -; \
 		fi
 
 
@@ -175,9 +215,10 @@ TAG  ?= latest
 MODE ?= prod
 
 
-# Wrapper script
+# Wrapper scripts
 #
 IMPORT_WRAPPER = "/sql_import_wrapper.sh"
+UPDATE_WRAPPER = "/update_hdc_wrapper.sh"
 
 
 # Default is docker-compose.yml, add dev.yml for development
