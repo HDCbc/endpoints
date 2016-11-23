@@ -57,7 +57,7 @@ encrypt: packages
 	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
 	@	sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
 	@	. ../config.env; \
-		if [ ! -d "$${ENCRYPTED}" ]; \
+		if [ ! -d "$${VOLS_DATA}" ]; \
 		then \
 			sudo mkdir -p $${ENCRYPTED} $${VOLS_DATA}; \
 			sudo encfs -o nonempty --public $${ENCRYPTED} $${VOLS_DATA}; \
