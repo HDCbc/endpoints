@@ -60,7 +60,7 @@ encrypt: packages
 		if [ ! -d "$${ENCRYPTED}" ]; \
 		then \
 			sudo mkdir -p $${ENCRYPTED} $${VOLS_DATA}; \
-			sudo encfs --public $${ENCRYPTED} $${VOLS_DATA}; \
+			sudo encfs -o nonempty --public $${ENCRYPTED} $${VOLS_DATA}; \
 		fi; \
 		sudo chmod a+rx $${ENCRYPTED} $${VOLS_DATA}
 	@	sudo systemctl start docker || true
