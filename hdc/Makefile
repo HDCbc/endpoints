@@ -56,12 +56,13 @@ encrypt: packages
 	@	sudo systemctl stop docker || true
 	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
 	@	sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
-	@	if [ ! -d "/hdc/.encrypted" ]; \
+	@	. ../config.env; \
+		if [ ! -d "$${ENCRYPTED}" ]; \
 		then \
-			sudo mkdir -p /hdc/.encrypted /hdc/data; \
-			sudo encfs --public /hdc/.encrypted /hdc/data; \
-		fi
-	@	sudo chmod a+rx /hdc/.encrypted /hdc/data
+			sudo mkdir -p $${ENCRYPTED} $${VOLS_DATA}; \
+			sudo encfs --public $${ENCRYPTED} $${VOLS_DATA}; \
+		fi; \
+		sudo chmod a+rx $${ENCRYPTED} $${VOLS_DATA}
 	@	sudo systemctl start docker || true
 
 

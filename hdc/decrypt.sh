@@ -13,7 +13,7 @@ set -eu
 # Decrypt private data folders
 #
 [ -s /hdc/data/mongo/WiredTiger ]|| \
-	sudo /usr/bin/encfs --public /hdc/.encrypted /hdc/data
+	sudo /usr/bin/encfs --public ${ENCRYPTED} ${VOLS_DATA}
 
 
 # Start Docker
