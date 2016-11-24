@@ -74,7 +74,9 @@ firewall: packages
 	@	sudo ufw allow from 104.154.23.66
 	@	sudo ufw allow from 104.154.44.76
 	@	sudo ufw allow from 104.154.84.170
+	@	sudo ufw allow from 104.154.231.252
 	@	sudo ufw allow from 104.155.156.113
+	@	sudo ufw allow from 104.197.1.34
 	@	[ ! -d /vagrant ]|| \
 			sudo ufw allow from 10.0.2.2
 	@	sudo ufw --force enable
