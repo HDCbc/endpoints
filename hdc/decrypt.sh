@@ -5,9 +5,17 @@
 set -eu
 
 
-# Source config
+# Get source file, following symlinks, and store the parent directory
 #
-. /hdc/endpoint/config.env
+SOURCE="${BASH_SOURCE[0]}"
+[ ! -h ${SOURCE} ]|| \
+	SOURCE="$( readlink ${SOURCE} )"
+PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
+
+
+# Source config, from the parent directory
+#
+. ${PARENT_DIR}/config.env
 
 
 # Decrypt private data folders
