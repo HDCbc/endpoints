@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: hardware packages monit firewall encrypt user ssh
+default: hardware dock-hdd packages monit firewall encrypt user ssh
 
 
 ###################
@@ -46,6 +46,28 @@ hardware:
 			) | sudo tee -a /etc/network/interfaces; \
 		fi
 
+# Nuke and mount HDD in Kangaroo Pro dock
+dock-hdd:
+	echo; \
+	echo "This will destroy /dev/sda!"; \
+	echo "Type DESTROY to destroy or Ctrl-C to cancel."; \
+	echo; \
+	read -r -p "Destroy?: " DESTROY; \
+	echo; \
+	if [ "$${DESTROY}" = "DESTROY" ]; \
+	then \
+		sudo parted -a optimal /dev/sda mktable gpt; \
+		sudo parted /dev/sda mkpart ext2 0% 100%; \
+		sleep 2; \
+		sudo mkfs.ext2 /dev/sda1; \
+		. ../config.env; \
+		sudo mkdir -p "$${VOLS_DATA}" "$${ENCRYPTED}"; \
+		if( ! grep --quiet "/dev/sda1 $${ENCRYPTED} auto defaults 0 2" /etc/fstab ); \
+		then \
+			echo "/dev/sda1 $${ENCRYPTED} auto defaults 0 2" | sudo tee -a /etc/fstab; \
+		fi; \
+		sudo mount -a; \
+	fi
 
 # Encrypt, stop Docker at boot and add decrypt.sh
 # Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
