@@ -47,7 +47,7 @@ hardware:
 		fi
 
 # Nuke and mount HDD in Kangaroo Pro dock
-dock-hdd:
+dock-hdd: packages
 	echo; \
 	echo "This will destroy /dev/sda!"; \
 	echo "Type DESTROY to destroy or Ctrl-C to cancel."; \
