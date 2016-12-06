@@ -92,7 +92,7 @@ auto-import-cron: auto-import-wrapper
 				sudo crontab -l; \
 				echo ""; \
 				echo "# SQL-E2E Import Swapper (equivalent to: cd $$( pwd ); make import)"; \
-				echo "0 * * * Sun $(IMPORT_WRAPPER)"; \
+				echo "0 0 * * Sun $(IMPORT_WRAPPER)"; \
 			) | sudo crontab -; \
 		fi
 
