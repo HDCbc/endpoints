@@ -18,6 +18,13 @@ PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
 . ${PARENT_DIR}/config.env
 
 
+# Mount Dock HDD, if provided
+#
+[ -z ${MOUNT_HDD} ]|| \
+	( grep -q ${MOUNT_HDD} /proc/mounts )|| \
+	sudo mount ${MOUNT_HDD} ${ENCRYPTED}
+
+
 # Decrypt private data folders
 #
 [ -s /hdc/data/mongo/WiredTiger ]|| \
