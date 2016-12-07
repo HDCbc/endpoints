@@ -64,6 +64,7 @@ dock-hdd: packages
 		sudo mkfs.ext2 /dev/sda1; \
 	fi
 	. ../config.env; \
+	sudo mkdir -p $${ENCRYPTED}; \
 	sudo mount $${MOUNT_HDD} $${ENCRYPTED}
 
 
