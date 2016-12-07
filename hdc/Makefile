@@ -103,7 +103,7 @@ firewall: packages
 
 # Packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
 packages:
-	@	PACKAGES="autossh encfs monit parted ufw"; \
+	@	PACKAGES="autossh encfs monit parted python ufw"; \
 		MISSING=0; \
 		for p in $${PACKAGES}; \
 		do \
