@@ -26,6 +26,7 @@ monit: packages ssh
 		fi
 	@	sudo monit reload
 	@	sudo monit start autossh
+	@	sudo monit status
 
 
 # Stop Ubuntu 15.10+ renaming eth0 when InFocus Kangaroo Pro dock is swapped
@@ -45,6 +46,7 @@ hardware:
 			echo 'iface eth0 inet dhcp'; \
 			) | sudo tee -a /etc/network/interfaces; \
 		fi
+
 
 # Nuke and mount HDD in Kangaroo Pro dock
 dock-hdd: packages
