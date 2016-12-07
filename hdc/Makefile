@@ -61,6 +61,9 @@ dock-hdd: packages
 		sleep 2; \
 		sudo mkfs.ext2 /dev/sda1; \
 	fi
+	. ../config.env; \
+	sudo mount $${MOUNT_HDD} $${ENCRYPTED}
+
 
 # Encrypt, stop Docker at boot and add decrypt.sh
 # Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
