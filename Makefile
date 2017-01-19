@@ -70,7 +70,7 @@ auto-import-wrapper: auto-import-packages env
 			echo ''; \
 			echo '# Import if SQL files are present (incrontab can not trigger by wildcard)'; \
 			echo '#'; \
-			echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" )'; \
+			echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" -o -name "*.xz" )'; \
 			echo 'if [ $${#SQL_CHECK[@]} -gt 0 ]'; \
 			echo 'then'; \
 			echo '	cd '$$( pwd ); \
