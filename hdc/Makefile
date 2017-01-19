@@ -48,24 +48,27 @@ hardware:
 		fi
 
 
-# Nuke and mount HDD in Kangaroo Pro dock
+# Nuke and mount HDD in Kangaroo Pro dock, if $MOUNT_HDD set
 dock-hdd: packages
-	echo; \
-	echo "This will destroy /dev/sda!"; \
-	echo "Type DESTROY to destroy or Ctrl-C to cancel."; \
-	echo; \
-	read -r -p "Destroy?: " DESTROY; \
-	echo; \
-	if [ "$${DESTROY}" = "DESTROY" ]; \
-	then \
-		sudo parted -a optimal /dev/sda mktable gpt; \
-		sudo parted /dev/sda mkpart ext2 0% 100%; \
-		sleep 2; \
-		sudo mkfs.ext2 /dev/sda1; \
-	fi
-	. ../config.env; \
-	sudo mkdir -p $${ENCRYPTED}; \
-	sudo mount $${MOUNT_HDD} $${ENCRYPTED}
+	@	. ../config.env; \
+		if [ ! -z "$${MOUNT_HDD}" ]; \
+		then \
+			echo; \
+			echo "This will destroy /dev/sda!"; \
+			echo "Type DESTROY to destroy or Ctrl-C to cancel."; \
+			echo; \
+			read -r -p "Destroy?: " DESTROY; \
+			echo; \
+			if [ "$${DESTROY}" = "DESTROY" ]; \
+			then \
+				sudo parted -a optimal /dev/sda mktable gpt; \
+				sudo parted /dev/sda mkpart ext2 0% 100%; \
+				sleep 2; \
+				sudo mkfs.ext2 /dev/sda1; \
+			fi; \
+			sudo mkdir -p $${ENCRYPTED}; \
+			sudo mount $${MOUNT_HDD} $${ENCRYPTED}; \
+		fi
 
 
 # Encrypt, stop Docker at boot and add decrypt.sh
