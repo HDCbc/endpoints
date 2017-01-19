@@ -26,6 +26,7 @@ monit: packages ssh
 		fi
 	@	sudo monit reload
 	@	sudo monit start autossh
+	@	sleep 3
 	@	sudo monit status
 
 
