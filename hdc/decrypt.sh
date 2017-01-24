@@ -18,11 +18,11 @@ PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
 . ${PARENT_DIR}/config.env
 
 
-# Mount Dock HDD, if provided
+# Mount Dock HDD device to HDD folder, if vars provided and unmounted
 #
-[ -z ${MOUNT_DEV} ]|| \
+[ -z ${MOUNT_DEV} ]&&[ -z ${MOUNT_HDD} ]|| \
 	( grep -q ${MOUNT_DEV} /proc/mounts )|| \
-	sudo mount ${MOUNT_DEV} ${ENCRYPTED}
+	sudo mount ${MOUNT_DEV} ${MOUNT_HDD}
 
 
 # Decrypt private data folders
