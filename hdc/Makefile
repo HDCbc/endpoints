@@ -49,10 +49,10 @@ hardware:
 		fi
 
 
-# Nuke and mount HDD in Kangaroo Pro dock, if $MOUNT_HDD set
+# Nuke and mount HDD in Kangaroo Pro dock, if $MOUNT_DEV set
 dock-hdd: packages
 	@	. ../config.env; \
-		if [ ! -z "$${MOUNT_HDD}" ]; \
+		if [ ! -z "$${MOUNT_DEV}" ]; \
 		then \
 			echo; \
 			echo "This will destroy /dev/sda!"; \
@@ -68,7 +68,7 @@ dock-hdd: packages
 				sudo mkfs.ext2 /dev/sda1; \
 			fi; \
 			sudo mkdir -p $${ENCRYPTED}; \
-			sudo mount $${MOUNT_HDD} $${ENCRYPTED}; \
+			sudo mount $${MOUNT_DEV} $${ENCRYPTED}; \
 		fi
 
 

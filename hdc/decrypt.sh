@@ -20,9 +20,9 @@ PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
 
 # Mount Dock HDD, if provided
 #
-[ -z ${MOUNT_HDD} ]|| \
-	( grep -q ${MOUNT_HDD} /proc/mounts )|| \
-	sudo mount ${MOUNT_HDD} ${ENCRYPTED}
+[ -z ${MOUNT_DEV} ]|| \
+	( grep -q ${MOUNT_DEV} /proc/mounts )|| \
+	sudo mount ${MOUNT_DEV} ${ENCRYPTED}
 
 
 # Decrypt private data folders
