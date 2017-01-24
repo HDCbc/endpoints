@@ -27,7 +27,8 @@ PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
 
 # Decrypt private data folders
 #
-[ -s /hdc/data/mongo/WiredTiger ]|| \
+[ -z ${ENCRYPTED} ]&&[ -z ${VOLS_DATA} ]|| \
+	( grep -q ${ENCRYPTED} /proc/mounts )|| \
 	sudo /usr/bin/encfs --public ${ENCRYPTED} ${VOLS_DATA}
 
 
