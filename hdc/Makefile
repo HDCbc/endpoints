@@ -94,6 +94,7 @@ encrypt: packages
 			sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g $${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service; \
 		fi
 	@	sudo systemctl start docker || true
+	@	sudo systemctl deamon-reload
 
 
 # Firewall, limit to HDC servers (and host for Vagrant)
