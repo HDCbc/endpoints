@@ -25,11 +25,19 @@ PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
 	sudo mount ${MOUNT_DEV} ${MOUNT_HDD}
 
 
-# Decrypt private data folders
+# If vars set and unmounted, then decrypt data into empty dir
 #
-[ -z ${ENCRYPTED} ]&&[ -z ${VOLS_DATA} ]|| \
-	( grep -q ${ENCRYPTED} /proc/mounts )|| \
-	sudo /usr/bin/encfs --public ${ENCRYPTED} ${VOLS_DATA}
+if( ! \
+	[ -z "${ENCRYPTED}" ]|| \
+	[ -z "${VOLS_DATA}" ]|| \
+	( grep -q "${ENCRYPTED}" /proc/mounts )|| \
+	( grep -q "${VOLS_DATA}" /proc/mounts )
+)
+then
+	[ ! -d "${VOLS_DATA}" ]|| sudo rm -rf "${VOLS_DATA}"
+	sudo mkdir "${VOLS_DATA}"
+	sudo /usr/bin/encfs --public "${ENCRYPTED}" "${VOLS_DATA}"
+fi
 
 
 # Start Docker
