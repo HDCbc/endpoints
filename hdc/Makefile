@@ -72,7 +72,7 @@ dock-hdd: packages
 		fi
 
 
-# Encrypt, stop Docker at boot and add decrypt.sh
+# Encrypt, stop Docker at boot, move Docker dir to $VOLS_DATA and add decrypt.sh
 # Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
 encrypt: packages
 	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
@@ -82,12 +82,17 @@ encrypt: packages
 	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
 	@	sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
 	@	. ../config.env; \
-		if [ ! -d "$${VOLS_DATA}" ]; \
+		if [ ! -z "$${VOLS_DATA}" ]; \
 		then \
 			sudo mkdir -p $${ENCRYPTED} $${VOLS_DATA}; \
 			sudo encfs -o nonempty --public $${ENCRYPTED} $${VOLS_DATA}; \
 		fi; \
 		sudo chmod a+rx $${ENCRYPTED} $${VOLS_DATA}
+	@	. ../config.env; \
+		if [ ! -z "$${VOLS_DATA}" ]&&[ ! -z "$${MOUNT_HDD}" ]; \
+		then \
+			sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g $${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service; \
+		fi
 	@	sudo systemctl start docker || true
 
 
