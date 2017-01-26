@@ -18,24 +18,32 @@ PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
 . ${PARENT_DIR}/config.env
 
 
-# Mount Dock HDD device to HDD folder, if vars provided and unmounted
+# External HDD - if vars set and unmounted, then mount into empty dir
 #
-[ -z ${MOUNT_DEV} ]&&[ -z ${MOUNT_HDD} ]|| \
-	( grep -q ${MOUNT_DEV} /proc/mounts )|| \
-	sudo mount ${MOUNT_DEV} ${MOUNT_HDD}
+if ! ( \
+	[ -z "${MOUNT_DEV}" ]|| \
+	[ -z "${MOUNT_HDD}" ]|| \
+	( grep -q "${MOUNT_DEV}" /proc/mounts )|| \
+	( grep -q "${MOUNT_HDD}" /proc/mounts )
+)
+then
+	[ ! -d "${MOUNT_HDD}" ]|| \
+		sudo rm -rf "${MOUNT_HDD}" && sudo mkdir -p "${MOUNT_HDD}"
+	sudo mount "${MOUNT_DEV}" "${MOUNT_HDD}"
+fi
 
 
-# If vars set and unmounted, then decrypt data into empty dir
+# Data dir - if vars set and unmounted, then decrypt into empty dir
 #
-if( ! \
+if ! ( \
 	[ -z "${ENCRYPTED}" ]|| \
 	[ -z "${VOLS_DATA}" ]|| \
 	( grep -q "${ENCRYPTED}" /proc/mounts )|| \
 	( grep -q "${VOLS_DATA}" /proc/mounts )
 )
 then
-	[ ! -d "${VOLS_DATA}" ]|| sudo rm -rf "${VOLS_DATA}"
-	sudo mkdir "${VOLS_DATA}"
+	[ ! -d "${VOLS_DATA}" ]|| \
+		sudo rm -rf "${VOLS_DATA}" && sudo mkdir -p "${VOLS_DATA}"
 	sudo /usr/bin/encfs --public "${ENCRYPTED}" "${VOLS_DATA}"
 fi
 
