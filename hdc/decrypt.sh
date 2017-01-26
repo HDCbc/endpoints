@@ -54,12 +54,6 @@ fi
 	sudo service docker start
 
 
-# Allow local server through firwall, if provided
-#
-[ -z ${DATA_FROM} ]|| \
-	sudo ufw allow from ${DATA_FROM}
-
-
 # Get Ethernet device name (filtered and keeping only one result)
 #
 ETHER_DEV="$( ifconfig | grep 'encap:Ethernet' | grep -v 'docker\|veth' | awk '{print $1}' )"
