@@ -60,18 +60,20 @@ fi
 	sudo ufw allow from ${DATA_FROM}
 
 
-# Add static IP, if provided and not already in use
+# Get Ethernet device name (filtered and keeping only one result)
 #
-if [ ! -z ${IP_STATIC} ]&&[ ! "$( hostname -I | grep ${IP_STATIC} )" ]
-then
-	# Grab Ethernet ports, filter (virtua, docker) and keep only one result
-	#
-	ETHERNAME="$( ifconfig | grep 'Ethernet' | grep -v 'docker\|veth' | awk '{print $1}' )"
-	set -- ${ETHERNAME}
-	ETHERNAME=${1}
+ETHER_DEV="$( ifconfig | grep 'encap:Ethernet' | grep -v 'docker\|veth' | awk '{print $1}' )"
+set -- "${ETHER_DEV}"
+ETHER_DEV="${1}"
 
-	# Add IP to $ETHERNAME, if one was found
-	#
-	[ ! "${ETHERNAME}" ]|| \
-		sudo ip addr add ${IP_STATIC} dev ${ETHERNAME}
+
+# Static IP - if vars set, Eth dev ID'd and not already is use
+#
+if ! (
+	[ -z "${ETHER_DEV}" ]
+	[ -z "${IP_STATIC}" ]|| \
+	[ "$( hostname -I | grep ${IP_STATIC} )" ]
+)
+then
+	sudo ip addr add "${IP_STATIC}" dev "${ETHER_DEV}"
 fi
