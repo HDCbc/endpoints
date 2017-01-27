@@ -5,17 +5,19 @@
 set -eu
 
 
-# Get source file, following symlinks, and store the parent directory
+# Get name and path of this script, tracing symlinks
 #
 SOURCE="${BASH_SOURCE[0]}"
-[ ! -h ${SOURCE} ]|| \
+while [ -h "${SOURCE}" ]
+do
 	SOURCE="$( readlink ${SOURCE} )"
-PARENT_DIR="$( cd -P $( dirname ${SOURCE} )/.. && pwd )"
+done
 
 
-# Source config, from the parent directory
+# Source config, in the parent directory of this (non-symlinked) script
 #
-. ${PARENT_DIR}/config.env
+PARENT_DIR="$( cd -P $( dirname "${SOURCE}" )/.. && pwd )"
+. "${PARENT_DIR}"/config.env
 
 
 # External HDD - if vars set and unmounted, then mount into empty dir
