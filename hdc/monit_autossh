@@ -1,5 +1,5 @@
 # Monitor autossh
 check process autossh with pidfile /hdc/autossh.pid
-    start program = "/bin/bash -c 'AUTOSSH_PIDFILE=/hdc/autossh.pid /usr/bin/autossh -f -M0 -p 2774 -N -R 44xxx:localhost:22 autossh@142.104.128.120 -o BatchMode=yes -o ServerAliveInterval=30 -o ExitOnForwardFailure=yes'"
+    start program = "/bin/bash -c 'AUTOSSH_LOGFILE=/hdc/config/autossh.log AUTOSSH_PIDFILE=/hdc/config/autossh.pid /usr/bin/autossh -f -M0 -p 2774 -N -R 44xxx:localhost:22 autossh@142.104.128.120 -o BatchMode=yes -o ServerAliveInterval=30 -o ExitOnForwardFailure=yes'"
     stop program = "/bin/bash -c '/bin/kill `/bin/cat /hdc/autossh.pid`'"
     if 100 restarts within 100 cycles then timeout
