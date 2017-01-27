@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: hardware dock-hdd packages monit firewall encrypt user ssh
+default: ssh hardware dock-hdd packages monit firewall encrypt user
 
 
 ###################

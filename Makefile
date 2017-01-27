@@ -5,9 +5,7 @@
 
 default: deploy
 
-auto-import: auto-import-cron auto-import-incron
-
-hdc: hdc-prep deploy auto-import upgrade-reboot
+hdc: hdc-prep deploy scheduled-import upgrade-reboot
 
 
 ###################
@@ -47,18 +45,8 @@ import:
 		echo
 
 
-# Auto-import (cron, incron) packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
-auto-import-packages:
-	@	( which cron && which incrond )|| \
-			( sudo apt-get update && sudo apt-get install cron incron -y)
-	@	sudo grep -q "root" /etc/incron.allow || \
-			echo "root" | sudo tee -a /etc/incron.allow
-	@	sudo grep -q $$( whoami ) /etc/incron.allow || \
-			echo $$( whoami ) | sudo tee -a /etc/incron.allow
-
-
-# Auto-import wrapper, for cron and incron
-auto-import-wrapper: auto-import-packages env
+# Auto-import wrapper for cron
+scheduled-import: env
 	@	. ./config.env; \
 		( \
 			echo '#!/bin/sh'; \
@@ -68,7 +56,7 @@ auto-import-wrapper: auto-import-packages env
 			echo 'set -eu'; \
 			echo ''; \
 			echo ''; \
-			echo '# Import if SQL files are present (incrontab can not trigger by wildcard)'; \
+			echo '# Import if SQL files are present'; \
 			echo '#'; \
 			echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" -o -name "*.xz" )'; \
 			echo 'if [ $${#SQL_CHECK[@]} -gt 0 ]'; \
@@ -83,9 +71,6 @@ auto-import-wrapper: auto-import-packages env
 			echo 'echo $$( date +%Y-%m-%d-%T ) $${SQL_CHECK} | sudo tee -a '$$( pwd )'/import.log'; \
 		) | sudo tee $(IMPORT_WRAPPER); \
 			sudo chmod +x $(IMPORT_WRAPPER)
-
-
-auto-import-cron: auto-import-wrapper
 	@	if ( ! sudo crontab -l | grep $(IMPORT_WRAPPER) ); \
 		then \
 			( \
@@ -97,20 +82,7 @@ auto-import-cron: auto-import-wrapper
 		fi
 
 
-auto-import-incron: auto-import-wrapper
-	@	. ./config.env; \
-		if ( ! sudo incrontab -l | grep $(IMPORT_WRAPPER) ); \
-		then \
-			( \
-				sudo incrontab -l; \
-				echo $${VOLS_DATA}/import/ IN_CLOSE_WRITE,IN_MOVED_TO $(IMPORT_WRAPPER) | sudo incrontab -; \
-			) \
-		fi
-
-
-auto-update:
-	@	( which cron )|| \
-			( sudo apt-get update && sudo apt-get install cron -y)
+scheduled-update:
 	@	( \
 			echo '#!/bin/sh'; \
 			echo '#'; \
@@ -139,19 +111,14 @@ auto-update:
 				sudo crontab -l; \
 				echo ""; \
 				echo "# Update Docker Containers"; \
-				echo "0 * * * Sat $(UPDATE_WRAPPER)"; \
+				echo "0 0 * * Fri $(UPDATE_WRAPPER)"; \
 			) | sudo crontab -; \
 		fi
 
 
 # Additional setup for HDC managed solutions
-hdc-prep: hdc-ssh config-docker
+hdc-prep: env config-docker
 	@	$(MAKE) -C hdc
-
-
-# Create HDC ssh key at beginning of setup, for convenience
-hdc-ssh: env
-	$(MAKE) ssh -C hdc
 
 
 # Configures and sources environment, used as a prerequisite; clip trailing /s
