@@ -67,14 +67,14 @@ dock-hdd: packages
 				sleep 2; \
 				sudo mkfs.ext2 /dev/sda1; \
 			fi; \
-			sudo mkdir -p $${ENCRYPTED}; \
-			sudo mount $${MOUNT_DEV} $${ENCRYPTED}; \
+			sudo mkdir -p "$${MOUNT_HDD}"; \
+			sudo mount "$${MOUNT_DEV}" "$${MOUNT_HDD}"; \
 		fi
 
 
 # Encrypt, stop Docker at boot, move Docker dir to $VOLS_DATA and add decrypt.sh
 # Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
-encrypt: packages
+encrypt: packages dock-hdd
 	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
 	@	sudo docker stop gateway_db || true
 	@	sudo systemctl disable docker || true
@@ -84,17 +84,17 @@ encrypt: packages
 	@	. ../config.env; \
 		if [ ! -z "$${VOLS_DATA}" ]; \
 		then \
-			sudo mkdir -p $${ENCRYPTED} $${VOLS_DATA}; \
-			sudo encfs -o nonempty --public $${ENCRYPTED} $${VOLS_DATA}; \
+			sudo mkdir -p "$${ENCRYPTED}" "$${VOLS_DATA}"; \
+			sudo encfs -o nonempty --public "$${ENCRYPTED}" "$${VOLS_DATA}"; \
 		fi; \
-		sudo chmod a+rx $${ENCRYPTED} $${VOLS_DATA}
+		sudo chmod a+rx "$${ENCRYPTED}" "$${VOLS_DATA}"
 	@	. ../config.env; \
 		if [ ! -z "$${VOLS_DATA}" ]&&[ ! -z "$${MOUNT_HDD}" ]; \
 		then \
 			sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g $${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service; \
 		fi
 	@	sudo systemctl start docker || true
-	@	sudo systemctl deamon-reload
+	@	sudo systemctl daemon-reload
 
 
 # Firewall, limit to HDC servers (and host for Vagrant)
