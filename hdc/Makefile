@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: ssh hardware dock-hdd packages monit firewall encrypt user
+default: ssh packages monit firewall kangaroo encrypt user
 
 
 ###################
@@ -26,12 +26,11 @@ monit: packages ssh
 		fi
 	@	sudo monit reload
 	@	sudo monit start autossh
-	@	sleep 3
-	@	sudo monit status
 
 
-# Stop Ubuntu 15.10+ renaming eth0 when InFocus Kangaroo Pro dock is swapped
-hardware:
+# For InFocus Kangaroo Mobile Desktop Pro hardware
+# Stop Ubuntu (15.10+) renaming eth0 and nuke/mount HDD in dock
+kangaroo: packages
 	@	if( ! sudo grep --quiet 'NAME="eth0"' /lib/udev/rules.d/*.rules ); \
 		then \
 			( \
@@ -47,10 +46,6 @@ hardware:
 			echo 'iface eth0 inet dhcp'; \
 			) | sudo tee -a /etc/network/interfaces; \
 		fi
-
-
-# Nuke and mount HDD in Kangaroo Pro dock, if $MOUNT_DEV set
-dock-hdd: packages
 	@	. ../config.env; \
 		if [ ! -z "$${MOUNT_DEV}" ]; \
 		then \
@@ -74,7 +69,7 @@ dock-hdd: packages
 
 # Encrypt, stop Docker at boot, move Docker dir to $VOLS_DATA and add decrypt.sh
 # Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
-encrypt: packages dock-hdd
+encrypt: packages kangaroo
 	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
 	@	sudo docker stop gateway_db || true
 	@	sudo systemctl disable docker || true
@@ -167,3 +162,6 @@ user:
 				echo 'cd /hdc/'; \
 			) >> ~/.bashrc; \
 		fi
+
+# Source config.env - configured manually or with make in parent dir
+include ../config.env
