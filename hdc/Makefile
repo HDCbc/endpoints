@@ -2,7 +2,7 @@
 # General Jobs #
 ################
 
-default: ssh packages monit firewall kangaroo encrypt user
+default: ssh packages monit firewall ip kangaroo encrypt user
 
 
 ###################
@@ -103,6 +103,20 @@ firewall: packages
 			sudo ufw allow from 10.0.2.2
 	@	sudo ufw --force enable
 	@	sudo ufw status verbose
+
+
+# Set and maintain static IP, from config.env
+ip:
+	. ../config.env; \
+	if( ! sudo crontab -l | grep "ip addr add" ); \
+	then \
+		( \
+			sudo crontab -l; \
+			echo ""; \
+			echo "# Keep Static IP Active"; \
+			echo "0 * * * * ip addr add $${IP_STATIC} dev eth0"; \
+		) | sudo crontab -; \
+	fi
 
 
 # Packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
