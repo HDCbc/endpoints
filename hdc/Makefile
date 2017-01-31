@@ -166,7 +166,11 @@ ssh:
 user:
 	@	. ../config.env; \
 		[ "$$( getent passwd exporter )" ]|| \
-			sudo useradd -m -d $${VOLS_DATA}/import -c "OSP Export Account" -s /bin/bash exporter
+			sudo useradd -m -d "$${VOLS_DATA}"/import -c "OSP Export Account" -s /bin/bash exporter; \
+		sudo mkdir -p "$${VOLS_DATA}"/import/.ssh; \
+		sudo touch "$${VOLS_DATA}"/import/.ssh/authorized_keys; \
+		sudo chown -R exporter:exporter "$${VOLS_DATA}"; \
+		sudo chmod 600 "$${VOLS_DATA}"/import/.ssh/authorized_keys
 		if( ! sudo grep --quiet "cd /hdc/" ~/.bashrc ); \
 		then \
 			( \
