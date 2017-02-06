@@ -70,10 +70,15 @@ kangaroo: packages
 # Encrypt, stop Docker at boot, move Docker dir to $VOLS_DATA and add decrypt.sh
 # Note: docker.conf for Ubuntu 14.04 and systemctl for Ubuntu 16.04
 encrypt: packages kangaroo
-	@	sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf
+	@	if( which systemctl ); \
+		then \
+			sudo systemctl disable docker; \
+			sudo systemctl stop docker; \
+		else \
+			sudo sed -i '/![^#]/ s/\(^start on.*$$\)/#\ \1/' /etc/init/docker.conf; \
+			sudo service docker stop || true ; \
+		fi
 	@	sudo docker stop gateway_db || true
-	@	sudo systemctl disable docker || true
-	@	sudo systemctl stop docker || true
 	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
 	@	sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
 	@	. ../config.env; \
@@ -88,8 +93,13 @@ encrypt: packages kangaroo
 		then \
 			sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g $${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service; \
 		fi
-	@	sudo systemctl start docker || true
-	@	sudo systemctl daemon-reload
+	@	if( which systemctl ); \
+		then \
+			sudo systemctl start docker || true; \
+			sudo systemctl daemon-reload; \
+		else \
+			sudo service docker start || true ; \
+		fi
 
 
 # Firewall, limit to HDC server, Mist servers and Vagrant (if applicable)
