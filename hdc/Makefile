@@ -89,7 +89,7 @@ encrypt: packages kangaroo
 		fi; \
 		sudo chmod a+rx "$${ENCRYPTED}" "$${VOLS_DATA}"
 	@	. ../config.env; \
-		if [ ! -z "$${VOLS_DATA}" ]&&[ ! -z "$${MOUNT_HDD}" ]; \
+		if [ ! -z "$${MOUNT_HDD}" ]; \
 		then \
 			sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g $${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service; \
 		fi
