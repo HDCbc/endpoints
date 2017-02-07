@@ -11,7 +11,7 @@ gateway:
   hostname: gateway
   image: hdcbc/gateway:${TAG}
   restart: always
-  log_driver: "journald"
+  log_driver: "${LOG_DRIVER}"
   links:
     - gateway_db:database
   ports:
@@ -27,6 +27,6 @@ gateway_db:
   hostname: gateway_db
   image: mongo:3.2.9
   restart: always
-  log_driver: "journald"
+  log_driver: "${LOG_DRIVER}"
   volumes:
     - ${VOLS_DATA}/mongo/:/data/db/:rw

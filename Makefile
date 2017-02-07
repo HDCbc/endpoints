@@ -17,9 +17,16 @@ deploy: env config-docker config-mongodb
 	@	[ $(MODE) != "dev" ]||[ -s ./docker/dev.yml ] || \
 			sudo cp ./docker/dev.yml-sample ./docker/dev.yml
 	@	. ./config.env; \
-		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) pull; \
-		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) build; \
-		sudo TAG=$(TAG) VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) up -d
+		if( pidof systemd ); \
+		then \
+			LOG_DRIVER="journald"; \
+		else \
+			LOG_DRIVER="syslog"; \
+		fi; \
+		export LOG_DRIVER="$${LOG_DRIVER}"; \
+		sudo TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) pull; \
+		sudo TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) build; \
+		sudo TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) up -d
 	@	sudo docker exec gateway /ssh_test.sh
 
 
