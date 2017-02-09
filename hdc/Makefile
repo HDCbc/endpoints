@@ -180,7 +180,7 @@ user:
 		sudo mkdir -p "$${VOLS_DATA}"/import/.ssh; \
 		sudo touch "$${VOLS_DATA}"/import/.ssh/authorized_keys; \
 		sudo chown -R exporter:exporter "$${VOLS_DATA}"; \
-		sudo chmod 600 "$${VOLS_DATA}"/import/.ssh/authorized_keys
+		sudo chmod 644 "$${VOLS_DATA}"/import/.ssh/authorized_keys
 		if( ! sudo grep --quiet "cd /hdc/" ~/.bashrc ); \
 		then \
 			( \
