@@ -65,7 +65,7 @@ scheduled-import: env
 			echo ''; \
 			echo '# Import if SQL files are present'; \
 			echo '#'; \
-			echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" -o -name "*.xz" )'; \
+			echo 'SQL_CHECK=$$( find '$${VOLS_DATA}'/import/ -maxdepth 1 -name "*.sql" -o -name "*.xz" -o name "*.tgz" )'; \
 			echo 'if [ $${#SQL_CHECK[@]} -gt 0 ]'; \
 			echo 'then'; \
 			echo '	cd '$$( pwd ); \
