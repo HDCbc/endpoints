@@ -47,6 +47,10 @@ then
 	[ ! -d "${VOLS_DATA}" ]|| \
 		sudo rm -rf "${VOLS_DATA}" && sudo mkdir -p "${VOLS_DATA}"
 	sudo /usr/bin/encfs --public "${ENCRYPTED}" "${VOLS_DATA}"
+	sudo chown -R root:root "${VOLS_DATA}"
+	sudo chmod -R 755 "${VOLS_DATA}"
+	sudo mkdir -p "${VOLS_DATA}"/import
+	sudo chown -R exporter:exporter "${VOLS_DATA}"/import
 fi
 
 
