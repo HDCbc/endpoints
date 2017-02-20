@@ -3,10 +3,15 @@
 set -x
 
 
-# Pull repo and ensure mounts
+# Pull repo
 #
 git -C /hdc/endpoint pull
-/hdc/endpoint/hdc/decrypt.sh
+
+
+# Mount HDD and decrypt data dir (w/ old structure)
+#
+sudo mount /dev/sda1 /hdc/.encrypted
+sudo encfs --public /hdc/.encrypted /hdc/data
 
 
 # Stop Docker containers and Docker
