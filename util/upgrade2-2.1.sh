@@ -49,12 +49,13 @@ make env
 make scheduled-import
 
 
-# Replace monit config and import/export user
+# Refresh user, monit and packages
 #
 cd /hdc/endpoint/hdc
-make monit
 sudo userdel exporter
 make user
+make monit
+make packages
 
 
 # Upgrade and cleanup
