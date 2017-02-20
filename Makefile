@@ -169,8 +169,8 @@ upgrade-reboot:
 	@	sudo apt-get upgrade -y
 	@	sudo apt-get dist-upgrade -y
 	@	sudo apt-get autoremove -y
-	@	sudo update-grub
-	@	sudo reboot now
+	@	sudo update-grub && \
+			sudo reboot now
 
 
 # Import Sample10 data into a Gateway
