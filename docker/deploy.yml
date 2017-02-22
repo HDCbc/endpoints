@@ -14,6 +14,7 @@ services:
     hostname: gateway
     image: hdcbc/gateway:${TAG}
     restart: "always"
+    cpu_quota: 25000
     links:
       - gateway_db:database
     ports:
@@ -29,6 +30,7 @@ services:
     hostname: gateway_db
     image: mongo:3.2.9
     restart: "always"
+    cpu_quota: 25000
     logging:
       driver: "${LOG_DRIVER}"
     volumes:
