@@ -12,7 +12,7 @@ services:
       - gateway_db
     container_name: gateway
     hostname: gateway
-    image: hdcbc/gateway:${TAG}
+    image: hdcbc/gateway:${TAG:-latest}
     restart: "always"
     cpu_quota: 25000
     mem_limit: 512m
@@ -21,11 +21,11 @@ services:
     ports:
       - "3001:3001"
     volumes:
-      - ${VOLS_CONFIG}/ssh/:/home/autossh/.ssh/:rw
+      - ${VOLS_CONFIG:-/hdc/config}/ssh/:/home/autossh/.ssh/:rw
     env_file:
       - ../config.env
     logging:
-      driver: "${LOG_DRIVER}"
+      driver: "${LOG_DRIVER:-journald}"
   gateway_db:
     container_name: gateway_db
     hostname: gateway_db
@@ -34,6 +34,6 @@ services:
     cpu_quota: 25000
     mem_limit: 512m
     logging:
-      driver: "${LOG_DRIVER}"
+      driver: "${LOG_DRIVER:-journald}"
     volumes:
-      - ${VOLS_DATA}/mongo/:/data/db/:rw
+      - ${VOLS_DATA:-/hdc/data/}/mongo/:/data/db/:rw
