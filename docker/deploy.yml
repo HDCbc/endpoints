@@ -5,28 +5,31 @@
 #
 # Use secondary .YML files for development and add -f YOUR.YML at execution.
 
-
-gateway:
-  container_name: gateway
-  hostname: gateway
-  image: hdcbc/gateway:${TAG}
-  restart: always
-  log_driver: "${LOG_DRIVER}"
-  links:
-    - gateway_db:database
-  ports:
-    - "3001:3001"
-  volumes:
-    - ${VOLS_CONFIG}/ssh/:/home/autossh/.ssh/:rw
-  env_file:
-    - ../config.env
-
-
-gateway_db:
-  container_name: gateway_db
-  hostname: gateway_db
-  image: mongo:3.2.9
-  restart: always
-  log_driver: "${LOG_DRIVER}"
-  volumes:
-    - ${VOLS_DATA}/mongo/:/data/db/:rw
+version: "2.1"
+services:
+  gateway:
+    depends_on:
+      - gateway_db
+    container_name: gateway
+    hostname: gateway
+    image: hdcbc/gateway:${TAG}
+    restart: "always"
+    links:
+      - gateway_db:database
+    ports:
+      - "3001:3001"
+    volumes:
+      - ${VOLS_CONFIG}/ssh/:/home/autossh/.ssh/:rw
+    env_file:
+      - ../config.env
+    logging:
+      driver: "${LOG_DRIVER}"
+  gateway_db:
+    container_name: gateway_db
+    hostname: gateway_db
+    image: mongo:3.2.9
+    restart: "always"
+    logging:
+      driver: "${LOG_DRIVER}"
+    volumes:
+      - ${VOLS_DATA}/mongo/:/data/db/:rw
