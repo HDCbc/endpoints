@@ -30,6 +30,7 @@ services:
     container_name: gateway_db
     hostname: gateway_db
     image: mongo:3.2.9
+    command: --nojournal
     restart: "always"
     cpu_quota: 75000
     mem_limit: 784m
