@@ -15,7 +15,7 @@ services:
     image: hdcbc/gateway:${TAG:-latest}
     restart: "always"
     cpu_quota: 75000
-    mem_limit: 256m
+    mem_limit: 512m
     links:
       - gateway_db:database
     ports:
@@ -33,7 +33,7 @@ services:
     command: --nojournal
     restart: "always"
     cpu_quota: 75000
-    mem_limit: 784m
+    mem_limit: 512m
     logging:
       driver: "${LOG_DRIVER:-journald}"
     volumes:
