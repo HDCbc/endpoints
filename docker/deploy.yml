@@ -15,7 +15,7 @@ services:
     image: hdcbc/gateway:${TAG:-latest}
     restart: "always"
     cpu_quota: 75000
-    mem_limit: 512m
+    mem_limit: 384m
     links:
       - gateway_db:database
     ports:
@@ -32,8 +32,8 @@ services:
     image: mongo:3.2.9
     command: --nojournal
     restart: "always"
-    cpu_quota: 75000
-    mem_limit: 512m
+    cpu_quota: 50000
+    mem_limit: 256m
     logging:
       driver: "${LOG_DRIVER:-journald}"
     volumes:
