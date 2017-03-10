@@ -92,6 +92,8 @@ encrypt: packages kangaroo
 		if [ ! -z "$${MOUNT_HDD}" ]; \
 		then \
 			sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g $${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service; \
+			sudo umount /var/lib/docker/devicemapper/mnt/*; \
+			sudo mv /var/lib/docker "$${MOUNT_HDD}/docker"; \
 		fi
 	@	if( which systemctl ); \
 		then \
