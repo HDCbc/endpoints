@@ -48,7 +48,7 @@ kangaroo: packages
 			) | sudo tee -a /etc/network/interfaces; \
 		fi
 	@	. ../config.env; \
-		if [ ! -z "$${MOUNT_DEV}" ]; \
+		if [ ! -z "$${MOUNT_DEV}" ]&&( ! sudo grep --quiet "$${MOUNT_DEV} $${MOUNT_HDD}" /proc/mounts ); \
 		then \
 			sudo parted -a optimal /dev/sda mktable gpt; \
 			sudo parted /dev/sda mkpart ext2 0% 100%; \
