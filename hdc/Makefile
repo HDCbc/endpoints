@@ -50,19 +50,10 @@ kangaroo: packages
 	@	. ../config.env; \
 		if [ ! -z "$${MOUNT_DEV}" ]; \
 		then \
-			echo; \
-			echo "This will destroy /dev/sda!"; \
-			echo "Type DESTROY to destroy or Ctrl-C to cancel."; \
-			echo; \
-			read -r -p "Destroy?: " DESTROY; \
-			echo; \
-			if [ "$${DESTROY}" = "DESTROY" ]; \
-			then \
-				sudo parted -a optimal /dev/sda mktable gpt; \
-				sudo parted /dev/sda mkpart ext2 0% 100%; \
-				sleep 2; \
-				sudo mkfs.ext2 /dev/sda1; \
-			fi; \
+			sudo parted -a optimal /dev/sda mktable gpt; \
+			sudo parted /dev/sda mkpart ext2 0% 100%; \
+			sleep 2; \
+			sudo mkfs.ext2 /dev/sda1; \
 			sudo mkdir -p "$${MOUNT_HDD}"; \
 			sudo mount "$${MOUNT_DEV}" "$${MOUNT_HDD}"; \
 		fi
