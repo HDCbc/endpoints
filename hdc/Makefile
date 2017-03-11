@@ -25,6 +25,7 @@ monit: packages ssh
 			/etc/monit/monitrc; \
 		fi
 	@	sudo monit reload
+	@	sleep 2
 	@	sudo monit start autossh
 
 
