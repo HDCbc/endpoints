@@ -92,8 +92,9 @@ encrypt: packages kangaroo
 		fi
 	@	if( which systemctl ); \
 		then \
-			sudo systemctl start docker || true; \
 			sudo systemctl daemon-reload; \
+			sudo systemctl reload docker; \
+			sudo systemctl restart docker || true; \
 		else \
 			sudo service docker start || true ; \
 		fi
