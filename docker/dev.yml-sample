@@ -13,22 +13,27 @@
 # https://docs.docker.com/compose/compose-file/
 
 
-gateway:
-  log_driver: "json-file"
-  # build: ./gateway
-
-
-gateway_db:
-  log_driver: "json-file"
-#  image: mongo:latest
-
-
-# e2e_oscar:
-#   container_name: e2e_oscar
-#   hostname: e2e_oscar
-#   build: ./e2e-oscar
-#   log_driver: "json-file"
-#   links:
-#     - gateway:gateway
-#   volumes:
-#     - ${VOLS_DATA}/import/:/import/:rw
+version: "2.1"
+services:
+  gateway:
+    build: ./gateway
+    logging:
+      driver: "json-file"
+  gateway_db:
+    image: mongo:latest
+    logging:
+      driver: "json-file"
+  # e2e_oscar:
+  #   build: ./e2e_oscar
+  #   depends_on:
+  #     - gateway_db
+  #     - gateway
+  #   container_name: e2e_oscar
+  #   hostname: e2e_oscar
+  #   restart: "always"
+  #   links:
+  #      - gateway:gateway
+  #   volumes:
+  #      - ${VOLS_DATA}/import/:/import/:rw
+  #   logging:
+  #     driver: "json-file"
