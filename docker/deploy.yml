@@ -14,7 +14,7 @@ services:
     hostname: gateway
     image: hdcbc/gateway:${TAG:-latest}
     restart: "always"
-    mem_limit: 384m
+    mem_limit: "${GATEWAY_MEM:-0m}"
     links:
       - gateway_db:database
     ports:
@@ -31,7 +31,7 @@ services:
     image: mongo:3.2.9
     command: --nojournal
     restart: "always"
-    mem_limit: 256m
+    mem_limit: "${MONGODB_MEM:-0m}"
     logging:
       driver: "${LOG_DRIVER:-journald}"
     volumes:
