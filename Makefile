@@ -38,7 +38,10 @@ import:
 		TIME_BEFORE=$$( date +%s ); \
 		SQL_PATH=$${DIR:-"$${VOLS_DATA}/import/"}; \
 		SQL_PATH=$$( realpath $${SQL_PATH} ); \
-		sudo docker run --rm --name e2e-oscar -h e2e-oscar -e DEL_DUMPS="$${DEL_DUMPS}" --link gateway --volume "$${SQL_PATH}":/import:rw --cpus='2.5' --memory=1280m --net docker_default hdcbc/e2e_oscar:"${TAG}"; \
+		QUOTAS=""; \
+		[ -z "$${SQL2E2E_CPU}" ]|| QUOTAS="$${QUOTAS} --cpus=$${SQL2E2E_CPU}"; \
+		[ -z "$${SQL2E2E_MEM}" ]|| QUOTAS="$${QUOTAS} --memory=$${SQL2E2E_MEM}"; \
+		sudo docker run --rm --name e2e-oscar -h e2e-oscar -e DEL_DUMPS="$${DEL_DUMPS}" --link gateway --volume "$${SQL_PATH}":/import:rw $${QUOTAS} --net docker_default hdcbc/e2e_oscar:"${TAG}"; \
 		TIME_AFTER=$$( date +%s ); \
 		TIME_TOTAL=$$( expr "$${TIME_AFTER}" - "$${TIME_BEFORE}" ); \
 		RECORDS_AFTER=$$( sudo docker exec gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
