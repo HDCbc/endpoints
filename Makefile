@@ -31,7 +31,7 @@ deploy: env config-docker config-mongodb
 
 
 # Import SQL and export E2E to Gateway containers, after Gateway maintenance
-import:
+import: deploy
 	@	sudo docker pull hdcbc/e2e_oscar:"${TAG}"
 	@	sudo docker restart gateway || true
 	@	. ./config.env; \
