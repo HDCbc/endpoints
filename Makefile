@@ -23,10 +23,10 @@ deploy: env config-docker config-mongodb
 		else \
 			LOG_DRIVER="syslog"; \
 		fi; \
-		export LOG_DRIVER="$${LOG_DRIVER}"; \
-		sudo TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) pull; \
-		sudo TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) build; \
-		sudo TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} docker-compose $(YML) up -d
+		DOCKER_VARS="TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} GATEWAY_MEM=$${GATEWAY_MEM} MONGODB_MEM=$${MONGODB_MEM}"; \
+		sudo $${DOCKER_VARS} docker-compose $(YML) pull; \
+		sudo $${DOCKER_VARS} docker-compose $(YML) build; \
+		sudo $${DOCKER_VARS} docker-compose $(YML) up -d
 	@	sudo docker exec gateway /ssh_test.sh
 
 
