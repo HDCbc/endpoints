@@ -30,9 +30,10 @@ deploy: env config-docker config-mongodb
 	@	sudo docker exec gateway /ssh_test.sh
 
 
-# Import SQL and export E2E to Gateway containers
+# Import SQL and export E2E to Gateway containers, after Gateway maintenance
 import:
 	@	sudo docker pull hdcbc/e2e_oscar:"${TAG}"
+	@	sudo docker restart gateway || true
 	@	. ./config.env; \
 		RECORDS_BEFORE=$$( sudo docker exec gateway_db mongo query_gateway_development --eval 'db.records.count();' | grep -v -e "MongoDB" -e "connecting" ); \
 		TIME_BEFORE=$$( date +%s ); \
