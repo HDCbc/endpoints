@@ -23,10 +23,15 @@ deploy: env config-docker config-mongodb
 		else \
 			LOG_DRIVER="syslog"; \
 		fi; \
-		DOCKER_VARS="TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} GATEWAY_MEM=$${GATEWAY_MEM} MONGODB_MEM=$${MONGODB_MEM}"; \
-		sudo $${DOCKER_VARS} docker-compose $(YML) pull; \
-		sudo $${DOCKER_VARS} docker-compose $(YML) build; \
-		sudo $${DOCKER_VARS} docker-compose $(YML) up -d
+		if( sudo docker inspect -f {{.State.Running}} e2e-oscar ); \
+		then \
+			echo "E2E-OSCAR is running.  Skipping Gateway/MongoDB update."; \
+		else \
+			DOCKER_VARS="TAG=$(TAG) LOG_DRIVER=$${LOG_DRIVER} VOLS_CONFIG=$${VOLS_CONFIG} VOLS_DATA=$${VOLS_DATA} GATEWAY_MEM=$${GATEWAY_MEM} MONGODB_MEM=$${MONGODB_MEM}"; \
+			sudo $${DOCKER_VARS} docker-compose $(YML) pull; \
+			sudo $${DOCKER_VARS} docker-compose $(YML) build; \
+			sudo $${DOCKER_VARS} docker-compose $(YML) up -d; \
+		fi
 	@	sudo docker exec gateway /ssh_test.sh
 
 
