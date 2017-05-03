@@ -9,7 +9,7 @@ HDC Endpoint deployments for self- and HDC-managed options.
 Install Ubuntu 16.04, type the following and follow the directions.  This
 repository doesn't even need to be cloned first.
 
-* sudo bash -c "$( wget -qO- get.pdcbc.ca )"
+* wget -qO- get.pdcbc.ca | sh
 
 
 ## 0. Prerequisites
