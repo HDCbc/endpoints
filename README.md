@@ -54,8 +54,11 @@ Install Ubuntu with defaults, possible exceptions:
 * Username: hdc
 * Encrypt home: Yes
 * Time zone: Pacific
-* Partitioning: Guided - use entire disk and set up LVM
+* Partitioning: Guided - use entire disk
   * MMC/SD card #1
+* Note: avoid LVM with encrypted home on small HDDs
+  * 512 MB boot partition can fill very easily
+  * [Kernel update/autoremove bug](https://bugs.launchpad.net/ubuntu/+source/unattended-upgrades/+bug/1357093)
 * Force UEFI installation: Yes
 * Manage upgrades: No automatic updates
 * Software selection:
