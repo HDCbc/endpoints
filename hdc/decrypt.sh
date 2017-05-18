@@ -54,6 +54,19 @@ then
 fi
 
 
+# Alt Docker dir - if vars set and /var/lib/docker not a symlink, then delete it
+#
+if ( \
+	[ "${MOUNT_DEV}" ]&& \
+	[ "${MOUNT_HDD}" ]&& \
+	[ -d /var/lib/docker ]&& \
+	[ ! -L /var/lib/docker ]
+)
+then
+	sudo rm -rf /var/lib/docker
+fi
+
+
 # Alt Docker dir - if vars set and mounted, then make sure Docker uses it (and not /)
 #
 if ( \
