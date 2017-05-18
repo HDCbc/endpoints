@@ -54,6 +54,21 @@ then
 fi
 
 
+# Alt Docker dir - if vars set and mounted, then make sure Docker uses it (and not /)
+#
+if ( \
+	[ "${MOUNT_DEV}" ]&& \
+	[ "${MOUNT_HDD}" ]&& \
+	( grep -q "${MOUNT_DEV}" /proc/mounts )&& \
+	( grep -q "${MOUNT_HDD}" /proc/mounts )
+)
+then
+	[ -L /var/lib/docker ]|| sudo ln -s "${MOUNT_HDD}/docker" /var/lib/docker
+	sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g ${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service
+	( ! which systemctl )|| sudo systemctl daemon-reload
+fi
+
+
 # Start Docker
 #
 [ $( pgrep -c docker ) -gt 0 ]|| \
