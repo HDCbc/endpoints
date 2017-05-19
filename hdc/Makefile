@@ -89,6 +89,7 @@ encrypt: packages kangaroo
 		then \
 			sudo umount /var/lib/docker/devicemapper/mnt/*; \
 			sudo mv /var/lib/docker "$${MOUNT_HDD}/docker"; \
+			sudo ln -s "$${MOUNT_HDD}/docker" /var/lib/docker; \
 		fi
 	@	if( which systemctl ); \
 		then \
