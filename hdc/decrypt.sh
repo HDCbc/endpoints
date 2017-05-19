@@ -47,10 +47,6 @@ then
 	sudo rm -rf "${VOLS_DATA}"
 	sudo mkdir -p "${VOLS_DATA}"
 	sudo /usr/bin/encfs --public "${ENCRYPTED}" "${VOLS_DATA}"
-	sudo chown -R root:root "${VOLS_DATA}"
-	sudo chmod -R 755 "${VOLS_DATA}"
-	sudo mkdir -p "${VOLS_DATA}"/import
-	sudo chown -R exporter:exporter "${VOLS_DATA}"/import
 fi
 
 
@@ -82,6 +78,15 @@ then
 	( ! which systemctl )|| \
 		sudo systemctl daemon-reload
 fi
+
+
+# Ensure correct permissions
+#
+sudo chown hdc:hdc "${VOLS_DATA}"
+sudo chown -R exporter:exporter "${VOLS_DATA}"/import
+sudo mkdir -p "${VOLS_DATA}"/mongo
+sudo chmod 700 "${VOLS_DATA}"/import "${VOLS_DATA}"/mongo
+sudo chmod 755 "${VOLS_DATA}"
 
 
 # Start Docker
