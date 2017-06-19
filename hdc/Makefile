@@ -29,6 +29,12 @@ monit: packages ssh
 	@	sudo monit start autossh
 
 
+# Sysstat config
+sysstat: packages
+	@	sudo sed -i 's/ENABLED="false"/ENABLED="true"/' /etc/default/sysstat
+	@	sudo systemctl restart sysstat
+
+
 # For InFocus Kangaroo Mobile Desktop Pro hardware
 # Stop Ubuntu (15.10+) renaming eth0 and nuke/mount HDD in dock
 kangaroo: packages
@@ -130,7 +136,7 @@ ip:
 
 # Packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
 packages:
-	@	PACKAGES="autossh encfs lynx monit nano parted python realpath ufw"; \
+	@	PACKAGES="autossh encfs lynx monit nano parted python realpath sysstat ufw"; \
 		MISSING=0; \
 		for p in $${PACKAGES}; \
 		do \
