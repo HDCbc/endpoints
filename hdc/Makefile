@@ -196,5 +196,18 @@ user:
 			) >> ~/.bashrc; \
 		fi
 
+
+# Scrub external HDD, if specified in config.env
+scrub:
+		sudo service docker stop || true
+		. ../config.env; \
+		( ! sudo grep --quiet "$${MOUNT_DEV}" /proc/mounts )|| \
+			sudo umount "$${MOUNT_DEV}"; \
+		( ! sudo grep --quiet "$${MOUNT_HDD}" /proc/mounts )|| \
+			sudo umount "$${MOUNT_HDD}"; \
+		[ -z "$${MOUNT_DEV}" ]|| \
+			sudo su -c "shred -vfzn 1 $${MOUNT_DEV}"
+
+
 # Source config.env - configured manually or with make in parent dir
 include ../config.env
