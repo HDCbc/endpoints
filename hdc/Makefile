@@ -32,7 +32,12 @@ monit: packages ssh
 # Sysstat config
 sysstat: packages
 	@	sudo sed -i 's/ENABLED="false"/ENABLED="true"/' /etc/default/sysstat
-	@	sudo systemctl restart sysstat
+	@	if( which systemctl ); \
+		then \
+			sudo systemctl restart sysstat; \
+		else \
+			sudo service sysstat restart || true ; \
+		fi
 
 
 # For InFocus Kangaroo Mobile Desktop Pro hardware
