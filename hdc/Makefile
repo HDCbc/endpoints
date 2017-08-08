@@ -211,7 +211,7 @@ scrub:
 		( ! sudo grep --quiet "$${MOUNT_HDD}" /proc/mounts )|| \
 			sudo umount "$${MOUNT_HDD}"; \
 		[ -z "$${MOUNT_DEV}" ]|| \
-			sudo su -c "shred -vfzn 1 $${MOUNT_DEV}"
+			sudo shred -vfzn 1 $${MOUNT_DEV}
 
 
 # Source config.env - configured manually or with make in parent dir
