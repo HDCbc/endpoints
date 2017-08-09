@@ -68,16 +68,6 @@ then
 fi
 
 
-# Reload Docker
-#
-if ( which systemctl )
-then
-	sudo systemctl daemon-reload
-else
-	sudo service docker restart
-fi
-
-
 # Ensure correct permissions
 #
 sudo chown hdc:hdc "${VOLS_DATA}"
@@ -87,13 +77,15 @@ sudo chmod 700 "${VOLS_DATA}"/import "${VOLS_DATA}"/mongo
 sudo chmod 755 "${VOLS_DATA}"
 
 
-# Ensure Docker has started (note: restart/reload inadequate)
+# Reload and ensure Docker has started
 #
 if ( which systemctl )
 then
 	sudo systemctl daemon-reload
+	sudo systemctl start docker
 else
 	sudo service docker restart
+	sudo service docker start
 fi
 
 
