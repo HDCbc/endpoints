@@ -75,8 +75,16 @@ then
 	[ -L /var/lib/docker ]|| \
 		sudo ln -s "${MOUNT_HDD}/docker" /var/lib/docker
 	sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g ${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service
-	( ! which systemctl )|| \
-		sudo systemctl daemon-reload
+fi
+
+
+# Reload Docker
+#
+if ( which systemctl )
+then
+	sudo systemctl daemon-reload
+else
+	sudo service docker restart
 fi
 
 
