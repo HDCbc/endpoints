@@ -107,7 +107,7 @@ ETHER_DEV="${1}"
 if (
 	[ "${ETHER_DEV}" ]&& \
 	[ "${IP_STATIC}" ]&& \
-	[ ! "$( hostname -I | grep ${IP_STATIC} )" ]
+	( ! ping -c1 -w3 "${IP_STATIC}" )
 )
 then
 	sudo ip addr add "${IP_STATIC}" dev "${ETHER_DEV}"
