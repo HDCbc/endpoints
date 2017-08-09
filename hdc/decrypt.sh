@@ -97,10 +97,14 @@ sudo chmod 700 "${VOLS_DATA}"/import "${VOLS_DATA}"/mongo
 sudo chmod 755 "${VOLS_DATA}"
 
 
-# Start Docker
+# Ensure Docker has started (note: restart/reload inadequate)
 #
-[ $( pgrep -c docker ) -gt 0 ]|| \
-	sudo service docker start
+if ( which systemctl )
+then
+	sudo systemctl daemon-reload
+else
+	sudo service docker restart
+fi
 
 
 # Get Ethernet device name (filtered and keeping only one result)
