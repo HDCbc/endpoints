@@ -29,7 +29,8 @@ if ( \
 	( ! grep -q "${MOUNT_HDD}" /proc/mounts )
 )
 then
-	sudo rm -rf "${MOUNT_HDD}"
+	[ ! -d "${MOUNT_HDD}" ]|| \
+		sudo rm -rf "${MOUNT_HDD}"
 	sudo mkdir -p "${MOUNT_HDD}"
 	sudo mount "${MOUNT_DEV}" "${MOUNT_HDD}"
 fi
@@ -44,7 +45,8 @@ if ( \
 	( ! grep -q "${VOLS_DATA}" /proc/mounts )
 )
 then
-	sudo rm -rf "${VOLS_DATA}"
+	[ ! -d "${VOLS_DATA}" ]|| \
+		sudo rm -rf "${VOLS_DATA}"
 	sudo mkdir -p "${VOLS_DATA}"
 	sudo /usr/bin/encfs --public "${ENCRYPTED}" "${VOLS_DATA}"
 fi
