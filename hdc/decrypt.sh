@@ -81,7 +81,7 @@ sudo chmod 755 "${VOLS_DATA}"
 
 # Reload and ensure Docker has started
 #
-if ( which systemctl )
+if ( which systemctl >/dev/null 2>&1 )
 then
 	sudo systemctl daemon-reload
 	sudo systemctl start docker
@@ -103,7 +103,7 @@ ETHER_DEV="${1}"
 if (
 	[ "${ETHER_DEV}" ]&& \
 	[ "${IP_STATIC}" ]&& \
-	( ! ping -c1 -w3 "${IP_STATIC}" )
+	( ! ping -c1 -w3 "${IP_STATIC}" >/dev/null 2>&1 )
 )
 then
 	sudo ip addr add "${IP_STATIC}" dev "${ETHER_DEV}"
