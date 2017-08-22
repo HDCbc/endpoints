@@ -115,9 +115,11 @@ encrypt: packages kangaroo
 # Firewall, limit to HDC server, Mist servers and Vagrant (if applicable)
 firewall: packages
 	@	sudo ufw allow from 142.104.128.120
-	@	sudo ufw allow from 104.154.44.76
-	@	sudo ufw allow from 104.154.231.252
-	@	sudo ufw allow from 104.197.1.34
+	@       sudo ufw allow from 104.198.19.203
+	@       sudo ufw allow from 35.184.67.94
+	@       sudo ufw allow from 104.198.197.230
+	@       sudo ufw allow from 104.154.33.164
+	@       sudo ufw allow from 104.155.147.47
 	@	sudo ufw allow ssh
 	@	[ ! -d /vagrant ]|| \
 			sudo ufw allow from 10.0.2.2
