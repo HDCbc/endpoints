@@ -72,7 +72,7 @@ fi
 
 # Ensure correct permissions
 #
-sudo chown hdc:hdc "${VOLS_DATA}"
+sudo chown hdc:adm "${VOLS_DATA}"
 sudo chown -R exporter:exporter "${VOLS_DATA}"/import
 sudo mkdir -p "${VOLS_DATA}"/mongo
 sudo chmod 700 "${VOLS_DATA}"/import "${VOLS_DATA}"/mongo
