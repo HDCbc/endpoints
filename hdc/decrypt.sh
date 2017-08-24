@@ -70,6 +70,14 @@ then
 fi
 
 
+# Limit Docker pulls to one at a time
+#
+if ( ! grep -q "\-\-max\-concurrent\-downloads" /lib/systemd/system/docker.service )
+then
+	sudo sed -i '/^ExecStart=\/usr\/bin\/dockerd/ s/$/ --max-concurrent-downloads 1/' /lib/systemd/system/docker.service
+fi
+
+
 # Ensure correct permissions
 #
 sudo chown hdc:adm "${VOLS_DATA}"
