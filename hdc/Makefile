@@ -41,7 +41,7 @@ sysstat: packages
 
 
 # For InFocus Kangaroo Mobile Desktop Pro hardware
-# Stop Ubuntu (15.10+) renaming eth0 and nuke/mount HDD in dock
+# Stop Ubuntu (15.10+) renaming eth0, remove unattended-upgrades and nuke/mount HDD in dock
 kangaroo: packages
 	@	if( ! sudo grep --quiet 'NAME="eth0"' /lib/udev/rules.d/*.rules ); \
 		then \
@@ -57,6 +57,10 @@ kangaroo: packages
 			echo 'auto eth0'; \
 			echo 'iface eth0 inet dhcp'; \
 			) | sudo tee -a /etc/network/interfaces; \
+		fi
+	@	if ( which unattended-upgrades ); \
+		then \
+			sudo apt-get purge -y unattended-upgrades; \
 		fi
 	@	. ../config.env; \
 		if [ ! -z "$${MOUNT_DEV}" ]&&( ! sudo grep --quiet "$${MOUNT_DEV} $${MOUNT_HDD}" /proc/mounts ); \
