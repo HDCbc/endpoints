@@ -61,6 +61,7 @@ kangaroo: packages
 	@	if ( which unattended-upgrades ); \
 		then \
 			sudo apt-get purge -y unattended-upgrades; \
+			sudo rm -rf /var/log/unattended-upgrades; \
 		fi
 	@	. ../config.env; \
 		if [ ! -z "$${MOUNT_DEV}" ]&&( ! sudo grep --quiet "$${MOUNT_DEV} $${MOUNT_HDD}" /proc/mounts ); \
