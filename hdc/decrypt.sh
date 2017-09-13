@@ -67,7 +67,7 @@ then
 	[ ! -L /var/lib/docker ]|| \
 		sudo ln -s "${MOUNT_HDD}/docker" /var/lib/docker
 	( grep -q "\-g ${MOUNT_HDD}" /lib/systemd/system/docker.service )|| \
-		sudo sed -i "/^ExecStart=\/usr\/bin\/dockerd/ s/$/ -g ${MOUNT_HDD}/" /lib/systemd/system/docker.service
+		sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g ${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service
 fi
 
 
