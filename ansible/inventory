@@ -1,0 +1,2 @@
+[test]
+test-0101 ansible_user=hdc gateway_id=101
