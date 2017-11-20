@@ -5,7 +5,10 @@
   tasks:
 
     - name: Install prerequisites
-      apt: name={{item}} state=present update_cache=yes
+      apt: 
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
       with_items:
         - apt-transport-https
         - ca-certificates
@@ -25,10 +28,16 @@
         update_cache: yes
 
     - name: Install Docker
-      apt: name=docker-ce state=present update_cache=yes
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
 
     - name: Configure Docker
-      lineinfile: "dest=/lib/systemd/system/docker.service regexp=^ExecStart line=ExecStart='/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1'"
+      lineinfile:
+        dest: /lib/systemd/system/docker.service
+        regexp: ^ExecStart
+        line: ExecStart='/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1'
 
     - name: Ensure non-encrypted Docker folder not present
       file:
@@ -45,5 +54,8 @@
          src: /hdc/data/docker
          dest: /var/lib/docker
          state: link
+
     - name: Start Docker
-      service: name=docker state=restarted
+      service:
+        name: docker
+        state: restarted
