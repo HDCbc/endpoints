@@ -1,0 +1,49 @@
+---
+# Setup and configure Docker
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Install prerequisites
+      apt: name={{item}} state=present update_cache=yes
+      with_items:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - software-properties-common
+
+    - name: Install Docker key
+      apt_key:
+        id: "9DC858229FC7DD38854AE2D88D81803C0EBFCD88"
+        keyserver: "hkp://p80.pool.sks-keyservers.net:80"
+        state: present
+
+    - name: Install Docker repo
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable
+        state: present
+        update_cache: yes
+
+    - name: Install Docker
+      apt: name=docker-ce state=present update_cache=yes
+
+    - name: Configure Docker
+      lineinfile: "dest=/lib/systemd/system/docker.service regexp=^ExecStart line=ExecStart='/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1'"
+
+    - name: Ensure non-encrypted Docker folder not present
+      file:
+        path: /var/lib/docker
+        state: absent
+
+    - name: Create symbolic link target
+      file:
+        path: /hdc/data/docker
+        state: directory
+
+    - name: Create symbolic link
+      file:
+         src: /hdc/data/docker
+         dest: /var/lib/docker
+         state: link
+    - name: Start Docker
+      service: name=docker state=restarted
