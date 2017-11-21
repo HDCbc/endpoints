@@ -9,7 +9,7 @@
         state: present
         update_cache: yes
       with_items:
-        - ssh
+        - autossh
         - encfs
         - lynx
         - monit
