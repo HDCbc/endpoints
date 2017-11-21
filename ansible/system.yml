@@ -1,0 +1,16 @@
+---
+# Upgrade and clean system
+- hosts: all
+  become: true
+  tasks:
+    - name: Upgrade and clean system
+      apt:
+        upgrade: dist
+        install_recommends: no
+        autoclean: yes
+        autoremove: yes
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Update GRUB
+      shell: update-grub
