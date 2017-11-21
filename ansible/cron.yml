@@ -1,0 +1,24 @@
+---
+# Set up Cron jobs
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Install Cron
+      apt:
+        name: cron
+        state: present
+        update_cache: yes
+
+    - name: Reapply static IP hourly
+      cron:
+        name: Reapply static IP hourly
+        minute: "0"
+        job: ip addr add 192.168.0.193 dev eth0
+
+    - name: Weekly SQL imports
+      cron:
+        name: Weekly SQL imports
+        minute: "0"
+        hour: "1"
+        job: /sql_import_wrapper.sh
