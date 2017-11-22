@@ -6,6 +6,7 @@
 *.json
 *.xml
 *.sql
+*.retry
 .directory
 docker/*
 !docker/deploy.yml
