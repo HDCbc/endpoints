@@ -55,6 +55,12 @@
          dest: /var/lib/docker
          state: link
 
+    - name: Install Docker
+      apt:
+        name: docker-compose
+        state: present
+        update_cache: yes
+
     - name: Start Docker
       service:
         name: docker
