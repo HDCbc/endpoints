@@ -37,7 +37,7 @@
       lineinfile:
         dest: /lib/systemd/system/docker.service
         regexp: ^ExecStart
-        line: ExecStart='/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1'
+        line: ExecStart=/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1
 
     - name: Ensure non-encrypted Docker folder not present
       file:
@@ -61,7 +61,8 @@
         state: present
         update_cache: yes
 
-    - name: Start Docker
-      service:
-        name: docker
+    - name: Reload systemd and Start Docker
+      systemd:
         state: restarted
+        daemon_reload: yes
+        name: docker
