@@ -74,8 +74,15 @@
           https://github.com/docker/compose/releases/download/"${VERSION}"/docker-compose-`uname -s`-`uname -m`
         chmod +x /usr/local/bin/docker-compose
 
-    - name: Reload systemd and Start Docker
+    - name: Reload systemd and Start Docker (Xenial/16.04)
+      when: ansible_distribution_release == 'xenial'
       systemd:
         state: restarted
         daemon_reload: yes
         name: docker
+
+    - name: Reload systemd and Start Docker (Trusty/14.04)
+      when: ansible_distribution_release == 'trusty'
+      service:
+        name: docker
+        state: restarted
