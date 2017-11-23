@@ -27,6 +27,17 @@
         state: present
         update_cache: yes
 
+    - name: Create non-standard Docker dir
+      file:
+        path: /hdc/data/docker
+        state: directory
+
+    - name: Create symbolic link for Docker dir
+      file:
+        src: /hdc/data/docker
+        dest: /var/lib/docker
+        state: link
+
     - name: Install Docker
       apt:
         name: docker-ce
@@ -38,22 +49,6 @@
         dest: /lib/systemd/system/docker.service
         regexp: ^ExecStart
         line: ExecStart=/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1
-
-    - name: Ensure non-encrypted Docker folder not present
-      file:
-        path: /var/lib/docker
-        state: absent
-
-    - name: Create symbolic link target
-      file:
-        path: /hdc/data/docker
-        state: directory
-
-    - name: Create symbolic link
-      file:
-         src: /hdc/data/docker
-         dest: /var/lib/docker
-         state: link
 
     - name: Install Docker
       apt:
