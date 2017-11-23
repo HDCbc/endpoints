@@ -8,6 +8,7 @@
 *.sql
 *.retry
 .directory
+.vagrant/
 docker/*
 !docker/deploy.yml
 !docker/dev.yml-sample
