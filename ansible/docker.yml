@@ -50,11 +50,29 @@
         regexp: ^ExecStart
         line: ExecStart=/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1
 
-    - name: Install Docker
+    - name: Install Docker Compose (Xenial/16.04)
+      when: ansible_distribution_release == 'xenial'
       apt:
         name: docker-compose
         state: present
         update_cache: yes
+
+    - name: Install Docker Compose (Trusty/14.04)
+      when: ansible_distribution_release == 'trusty'
+      shell: |
+        LIST=$( git ls-remote https://github.com/docker/compose | grep "refs/tags" | grep -oP "[0-9]+(\.[0-9]+)+$" )
+        while [ $( echo "${LIST}" | grep -v "^$" | wc -l ) -gt 0 ]
+        do
+          DIGIT=$( echo "${LIST}" | grep -oP "^[0-9]+" | sort -g | tail -n 1 )
+          VERSION="${VERSION:-}"."${DIGIT}"
+          LIST=$( echo "${LIST}" | grep -P "^${DIGIT}" | sed 's/^[0-9]*\.*//' )
+        done
+        VERSION=$( echo "${VERSION}" | sed "s/^\.//" )
+        echo "${VERSION}"
+        #
+        curl -o /usr/local/bin/docker-compose -L \
+          https://github.com/docker/compose/releases/download/"${VERSION}"/docker-compose-`uname -s`-`uname -m`
+        chmod +x /usr/local/bin/docker-compose
 
     - name: Reload systemd and Start Docker
       systemd:
