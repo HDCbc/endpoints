@@ -1,0 +1,12 @@
+---
+# Setup Exporter account
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Create exporter user
+      user:
+        name: exporter
+        comment: "OSP export account"
+        home: /hdc/data/import/
+        shell: /bin/bash
