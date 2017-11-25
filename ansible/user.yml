@@ -10,3 +10,15 @@
         comment: "OSP export account"
         home: /hdc/data/import/
         shell: /bin/bash
+
+    - name: Create folders and set permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: exporter
+        group: exporter
+        mode: 0775
+        recurse: no
+      with_items:
+        - /hdc/data/import/
+        - /hdc/data/import/.ssh/
