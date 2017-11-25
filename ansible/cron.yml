@@ -22,3 +22,13 @@
         minute: "0"
         hour: "1"
         job: /sql_import_wrapper.sh
+
+    - name: Copy SQL import script
+      copy:
+        src: ../hdc/sql_import_wrapper.sh
+        dest: /
+
+    - name: Make SQL import script executable
+      file:
+        path: /sql_import_wrapper.sh
+        mode: 0755
