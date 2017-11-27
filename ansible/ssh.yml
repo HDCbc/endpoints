@@ -4,6 +4,18 @@
   become: true
   tasks:
 
+    - name: Create folders and set permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: exporter
+        group: exporter
+        mode: 0775
+        recurse: no
+      with_items:
+        - /hdc/data/import/
+        - /hdc/data/import/.ssh/
+
     - name: Folder check
       command: mkdir -p /root/.ssh/
       args:
