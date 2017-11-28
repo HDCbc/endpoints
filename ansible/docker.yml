@@ -44,11 +44,17 @@
         state: present
         update_cache: yes
 
-    - name: Configure Docker
+    - name: Configure Docker directory and download cap
       lineinfile:
         dest: /lib/systemd/system/docker.service
         regexp: ^ExecStart
         line: ExecStart=/usr/bin/dockerd -g /hdc/data/docker -H fd:// --max-concurrent-downloads 1
+
+    - name: Disable Docker autostart
+      replace:
+        dest: /etc/init/docker.conf
+        regexp: '^start on'
+        replace: '#start on'
 
     - name: Install Docker Compose (Xenial/16.04)
       when: ansible_distribution_release == 'xenial'
