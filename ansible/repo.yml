@@ -18,6 +18,14 @@
         force: yes
         recursive: no
 
+    - name: Repo permissions
+      file:
+        path: /hdc/endpoint
+        state: directory
+        owner: hdc
+        group: hdc
+        recurse: yes
+
     - name: Create folders and set permissions
       file:
         path: "{{ item }}"
@@ -30,4 +38,3 @@
         - /hdc/
         - /hdc/config/ssh/
         - /hdc/data/mongo/
-        - /hdc/endpoint
