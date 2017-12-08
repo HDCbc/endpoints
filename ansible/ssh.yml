@@ -1,0 +1,43 @@
+---
+# Setup SSH keys
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Create folders and set permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: exporter
+        group: exporter
+        mode: 0775
+        recurse: no
+      with_items:
+        - /hdc/data/import/
+        - /hdc/data/import/.ssh/
+
+    - name: Folder check
+      command: mkdir -p /root/.ssh/
+      args:
+        creates: /root/.ssh/
+
+    - name: Create SSH keys
+      command: ssh-keygen -b 4096 -t rsa -N "" -C ep101 -f /root/.ssh/id_rsa
+      args:
+        creates: /root/.ssh/{{ item }}
+      with_items:
+        - id_rsa.pub
+        - id_rsa
+
+    - name: Folder check
+      command: mkdir -p /hdc/config/ssh/
+      args:
+        creates: /hdc/config/ssh/
+
+    - name: Copy keys to Docker container
+      command: cp /root/.ssh/{{ item }} /hdc/config/ssh/
+      args:
+        creates: /hdc/config/ssh/{{ item }}
+      with_items:
+        - id_rsa.pub
+        - id_rsa

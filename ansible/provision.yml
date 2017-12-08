@@ -1,0 +1,16 @@
+---
+# Import other playbooks
+- import_playbook: python.yml
+- import_playbook: encrypt.yml
+- import_playbook: user.yml
+- import_playbook: repo.yml
+- import_playbook: cron.yml
+- import_playbook: docker.yml
+- import_playbook: mongo.yml
+- import_playbook: monit.yml
+- import_playbook: packages.yml
+- import_playbook: ssh.yml
+- import_playbook: sysstat.yml
+- import_playbook: system.yml
+- import_playbook: ufw.yml
+- import_playbook: deploy.yml

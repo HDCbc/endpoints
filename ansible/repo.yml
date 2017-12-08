@@ -1,0 +1,40 @@
+---
+# Prepare directories
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+
+    - name: Git clone
+      git:
+        repo: 'https://github.com/hdcbc/endpoint.git'
+        dest: /hdc/endpoint
+        accept_hostkey: yes
+        force: yes
+        recursive: no
+
+    - name: Repo permissions
+      file:
+        path: /hdc/endpoint
+        state: directory
+        owner: hdc
+        group: hdc
+        recurse: yes
+
+    - name: Create folders and set permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: hdc
+        group: hdc
+        mode: 0775
+        recurse: no
+      with_items:
+        - /hdc/
+        - /hdc/config/ssh/
+        - /hdc/data/mongo/

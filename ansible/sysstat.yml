@@ -1,0 +1,23 @@
+---
+# SysStat install and config
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Install SysStat
+      apt:
+        name: sysstat
+        state: present
+        update_cache: yes
+
+    - name: Configure SysStat
+      replace:
+        dest: /etc/default/sysstat
+        regexp: 'ENABLED="false"'
+        replace: 'ENABLED="true"'
+        backup: no
+
+    - name: Start SysStat
+      service:
+        name: sysstat
+        state: restarted

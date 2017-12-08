@@ -1,0 +1,66 @@
+---
+# Set up ENCFS
+- hosts: all
+  become: true
+
+  vars_prompt:
+    - name: encfspw
+      prompt: "ENCFS password"
+      confirm: yes
+
+  tasks:
+    - stat:
+        path: /home/vagrant/.bashrc
+      register: vagrantcheck
+
+    - stat:
+        path: /usr/bin/docker
+      register: dockercheck
+
+    - name: Install Encfs and Pexpect
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - encfs
+        - python-pexpect
+
+    - name: Stop Docker (Xenial/16.04)
+      when:
+        - ansible_distribution_release == 'xenial'
+        - dockercheck.stat.exists
+      systemd:
+        state: stopped
+        name: docker
+
+    - name: Stop Docker (Trusty/14.04)
+      when:
+        - ansible_distribution_release == 'trusty'
+        - dockercheck.stat.exists
+      service:
+        name: docker
+        state: stopped
+
+    - name: Create folders and set permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0775
+        recurse: no
+      with_items:
+        - /hdc/.data
+        - /hdc/data
+
+    - name: Create encrypted mount
+      when:
+        - vagrantcheck.stat.exists == False
+      expect:
+        creates: /hdc/.data/.encfs6.xml
+        echo: yes
+        command: encfs -o nonempty --public /hdc/.data /hdc/data
+        responses:
+            "standard mode": ""
+            "(?i)New Encfs Password": "{{ encfspw }}"
+            "(?i)Verify Encfs Password": "{{ encfspw }}"
+      register: prompt

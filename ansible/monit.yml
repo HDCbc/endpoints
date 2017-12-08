@@ -1,0 +1,39 @@
+---
+# Monit install and config
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Install Monit
+      apt:
+        name: monit
+        state: present
+        update_cache: yes
+
+    - name: Copy Monit AutoSSH file
+      copy:
+        src: ../hdc/monit_autossh
+        dest: /etc/monit/conf.d/monit_autossh
+
+    - name: Configure Monit AutoSSH file
+      replace:
+        dest: /etc/monit/conf.d/monit_autossh
+        regexp: '44xxx'
+        replace: '44101'
+        backup: no
+
+    - name: Configure MonitRC
+      lineinfile:
+        dest: /etc/monit/monitrc
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+      with_items:
+        - { regexp: '^# *set httpd port', line: 'set httpd port 2812 and' }
+        - { regexp: '^# *use address localhost', line: '     use address localhost' }
+        - { regexp: '^# *allow localhost', line: '     allow localhost' }
+
+    - name: Start Monit
+      service:
+        name: monit
+        state: restarted

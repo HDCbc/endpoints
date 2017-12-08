@@ -1,0 +1,21 @@
+---
+# Setup packages from Ubuntu repositories
+- hosts: all
+  become: true
+  tasks:
+    - name: Install packages
+      apt:
+        name: "{{ item }}"
+        state: present
+        update_cache: yes
+      with_items:
+        - autossh
+        - encfs
+        - lynx
+        - monit
+        - nano
+        - parted
+        - python
+        - realpath
+        - sysstat
+        - ufw

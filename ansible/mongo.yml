@@ -1,0 +1,25 @@
+---
+# Config for MongoDb
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Disable transparent hugepage for MongoDb
+      shell: echo never > /sys/kernel/mm/transparent_hugepage/enabled
+
+    - name: Disable transparent hugepage for MongoDb
+      shell: echo never > /sys/kernel/mm/transparent_hugepage/defrag
+
+    - name: Prevent transparent hugepage on boot
+      lineinfile:
+        path: /etc/rc.local
+        insertbefore: "exit 0"
+        line: "{{ item.line }}"
+      with_items:
+        - { line: 'echo never > /sys/kernel/mm/transparent_hugepage/enabled' }
+        - { line: 'echo never > /sys/kernel/mm/transparent_hugepage/defrag' }
+
+    - name: Set permissions for /etc/rc.local
+      file:
+        path: /etc/rc.local
+        mode: 0755

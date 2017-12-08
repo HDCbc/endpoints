@@ -1,0 +1,46 @@
+---
+# Setup accounts
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Create HDC admin user
+      user:
+        name: hdc
+        groups: sudo,adm
+        comment: "HDC admin account"
+        home: /home/hdc
+        shell: /bin/bash
+
+    - name: Create folders and set permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: hdc
+        group: hdc
+        mode: 0775
+        recurse: no
+      with_items:
+        - /hdc/
+        - /hdc/config/
+        - /hdc/config/.ssh/
+        - /hdc/data/
+
+    - name: Create exporter user
+      user:
+        name: exporter
+        comment: "OSP export account"
+        home: /hdc/data/import/
+        shell: /bin/bash
+
+    - name: Create folders and set permissions
+      file:
+        path: "{{ item }}"
+        state: directory
+        owner: exporter
+        group: exporter
+        mode: 0770
+        recurse: no
+      with_items:
+        - /hdc/data/import/
+        - /hdc/data/import/.ssh/

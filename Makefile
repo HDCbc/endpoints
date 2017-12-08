@@ -187,6 +187,17 @@ sample-data:
 	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
 
 
+# Setup Ansible from PPA
+ansible-server:
+	@	sudo apt-add-repository ppa:ansible/ansible -y
+	@	sudo apt-get update
+	@	sudo apt-get install -y \
+			ansible \
+			python \
+			python-passlib \
+			software-properties-common
+
+
 ################
 # Runtime prep #
 ################

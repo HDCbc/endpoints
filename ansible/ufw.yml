@@ -1,0 +1,33 @@
+---
+# Setup and configure UFW
+- hosts: all
+  become: true
+  tasks:
+
+    - name: Install UFW
+      apt:
+        name: ufw
+        state: present
+        update_cache: yes
+
+    - name: Configure UFW
+      ufw:
+        rule: allow
+        name: OpenSSH
+
+    - name: Allowed IPs
+      ufw:
+        rule: allow
+        src: "{{ item }}"
+      with_items:
+        - 142.104.128.120
+        - 104.198.19.203
+        - 35.184.67.94
+        - 104.198.197.230
+        - 104.154.33.164
+        - 104.155.147.47
+        - 10.0.2.2
+
+    - name: Start UFW
+      ufw:
+        state: enabled
