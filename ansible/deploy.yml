@@ -1,0 +1,26 @@
+---
+# Start Gateway containers
+- hosts: all
+  become: true
+
+  tasks:
+    - name: Create Endpoint config.env
+      command: cp /hdc/endpoint/config.env-sample /hdc/endpoint/config.env
+      args:
+        creates: /hdc/endpoint/config.env
+
+    - name: Reload systemd and Start Docker (Xenial/16.04)
+      when: ansible_distribution_release == 'xenial'
+      systemd:
+        state: restarted
+        daemon_reload: yes
+        name: docker
+
+    - name: Reload systemd and Start Docker (Trusty/14.04)
+      when: ansible_distribution_release == 'trusty'
+      service:
+        name: docker
+        state: restarted
+
+    - name: Fire up containers
+      command: chdir=/hdc/endpoint make deploy
