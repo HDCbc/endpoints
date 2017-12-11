@@ -22,5 +22,11 @@
         name: docker
         state: restarted
 
+    - name: Install make
+      apt:
+        name: make
+        state: present
+        update_cache: yes
+
     - name: Fire up containers
       command: chdir=/hdc/endpoint make deploy
