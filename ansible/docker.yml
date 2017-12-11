@@ -56,15 +56,7 @@
         regexp: '^start on'
         replace: '#start on'
 
-    - name: Install Docker Compose (Xenial/16.04)
-      when: ansible_distribution_release == 'xenial'
-      apt:
-        name: docker-compose
-        state: present
-        update_cache: yes
-
-    - name: Install Docker Compose (Trusty/14.04)
-      when: ansible_distribution_release == 'trusty'
+    - name: Install Docker Compose
       shell: |
         LIST=$( git ls-remote https://github.com/docker/compose | grep "refs/tags" | grep -oP "[0-9]+(\.[0-9]+)+$" )
         while [ $( echo "${LIST}" | grep -v "^$" | wc -l ) -gt 0 ]
