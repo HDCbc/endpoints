@@ -150,7 +150,7 @@ ip:
 
 # Packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
 packages:
-	@	PACKAGES="autossh encfs lynx monit nano parted python realpath secure-delete sysstat ufw"; \
+	@	PACKAGES="autossh encfs lynx monit nano parted python realpath secure-delete sysstat traceroute ufw"; \
 		MISSING=0; \
 		for p in $${PACKAGES}; \
 		do \
