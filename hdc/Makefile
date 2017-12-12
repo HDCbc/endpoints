@@ -135,13 +135,15 @@ firewall: packages
 # Set and maintain static IP, from config.env
 ip:
 	. ../config.env; \
+	ETHER_DEV=$$( ip -o link show | grep -v 'vbox\|veth\|br-' | awk '{print $$2,$$9}' | grep UP | awk '{print $$1}' | \
+		sed 's/://' | head -n1 ); \
 	if( ! sudo crontab -l | grep "ip addr add" ); \
 	then \
 		( \
 			sudo crontab -l; \
 			echo ""; \
 			echo "# Keep Static IP Active"; \
-			echo "0 * * * * ip addr add $${IP_STATIC} dev eth0"; \
+			echo "0 * * * * ip addr add $${IP_STATIC} dev $${ETHER_DEV}"; \
 		) | sudo crontab -; \
 	fi
 
