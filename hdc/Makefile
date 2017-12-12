@@ -135,20 +135,22 @@ firewall: packages
 # Set and maintain static IP, from config.env
 ip:
 	. ../config.env; \
+	ETHER_DEV=$$( ip -o link show | grep -v 'vbox\|veth\|br-' | awk '{print $$2,$$9}' | grep UP | awk '{print $$1}' | \
+		sed 's/://' | head -n1 ); \
 	if( ! sudo crontab -l | grep "ip addr add" ); \
 	then \
 		( \
 			sudo crontab -l; \
 			echo ""; \
 			echo "# Keep Static IP Active"; \
-			echo "0 * * * * ip addr add $${IP_STATIC} dev eth0"; \
+			echo "0 * * * * ip addr add $${IP_STATIC} dev $${ETHER_DEV}"; \
 		) | sudo crontab -; \
 	fi
 
 
 # Packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
 packages:
-	@	PACKAGES="autossh encfs lynx monit nano parted python realpath sysstat ufw"; \
+	@	PACKAGES="autossh encfs lynx monit nano parted python realpath secure-delete sysstat traceroute ufw"; \
 		MISSING=0; \
 		for p in $${PACKAGES}; \
 		do \
@@ -209,10 +211,22 @@ user:
 		fi
 
 
+# Scrub folder, if specified in config.env
+scrub: packages
+	@	sudo service docker stop || true
+	@	. ../config.env; \
+		( ! sudo grep --quiet "$${MOUNT_DEV}" /proc/mounts )|| \
+			sudo umount "$${MOUNT_DEV}"; \
+		( ! sudo grep --quiet "$${MOUNT_HDD}" /proc/mounts )|| \
+			sudo umount "$${MOUNT_HDD}"; \
+		[ -z "$${VOLS_DATA}" ]|| \
+			sudo srm -rfll $${VOLS_DATA}
+
+
 # Scrub external HDD, if specified in config.env
-scrub:
-		sudo service docker stop || true
-		. ../config.env; \
+scrub-dev:
+	@	sudo service docker stop || true
+	@	. ../config.env; \
 		( ! sudo grep --quiet "$${MOUNT_DEV}" /proc/mounts )|| \
 			sudo umount "$${MOUNT_DEV}"; \
 		( ! sudo grep --quiet "$${MOUNT_HDD}" /proc/mounts )|| \

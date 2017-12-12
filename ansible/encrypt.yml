@@ -11,7 +11,11 @@
   tasks:
     - stat:
         path: /home/vagrant/.bashrc
-      register: vagrantcheck
+      register: vagrantcheckuser
+
+    - stat:
+        path: /vagrant/
+      register: vagrantcheckdir
 
     - stat:
         path: /usr/bin/docker
@@ -54,7 +58,8 @@
 
     - name: Create encrypted mount
       when:
-        - vagrantcheck.stat.exists == False
+        - vagrantcheckuser.stat.exists == False
+        - vagrantcheckdir.stat.exists == False
       expect:
         creates: /hdc/.data/.encfs6.xml
         echo: yes

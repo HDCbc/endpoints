@@ -102,9 +102,7 @@ fi
 
 # Get Ethernet device name (filtered and keeping only one result)
 #
-ETHER_DEV="$( ifconfig | grep 'encap:Ethernet' | grep -v 'docker\|veth' | awk '{print $1}' )"
-set -- "${ETHER_DEV}"
-ETHER_DEV="${1}"
+ETHER_DEV=$( ip -o link show | grep -v 'vbox\|veth\|br-' | awk '{print $2,$9}' | grep UP | awk '{print $1}' | sed 's/://' | head -n1 ); \
 
 
 # Static IP - if vars set, Eth dev ID'd and not already is use
