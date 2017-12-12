@@ -148,7 +148,7 @@ ip:
 
 # Packages - TODO: switch to apt (not apt-get) when Ubuntu 14.04 is dropped
 packages:
-	@	PACKAGES="autossh encfs lynx monit nano parted python realpath sysstat ufw"; \
+	@	PACKAGES="autossh encfs lynx monit nano parted python realpath secure-delete sysstat ufw"; \
 		MISSING=0; \
 		for p in $${PACKAGES}; \
 		do \
@@ -209,10 +209,22 @@ user:
 		fi
 
 
+# Scrub folder, if specified in config.env
+scrub: packages
+	@	sudo service docker stop || true
+	@	. ../config.env; \
+		( ! sudo grep --quiet "$${MOUNT_DEV}" /proc/mounts )|| \
+			sudo umount "$${MOUNT_DEV}"; \
+		( ! sudo grep --quiet "$${MOUNT_HDD}" /proc/mounts )|| \
+			sudo umount "$${MOUNT_HDD}"; \
+		[ -z "$${VOLS_DATA}" ]|| \
+			sudo srm -rfll $${VOLS_DATA}
+
+
 # Scrub external HDD, if specified in config.env
-scrub:
-		sudo service docker stop || true
-		. ../config.env; \
+scrub-dev:
+	@	sudo service docker stop || true
+	@	. ../config.env; \
 		( ! sudo grep --quiet "$${MOUNT_DEV}" /proc/mounts )|| \
 			sudo umount "$${MOUNT_DEV}"; \
 		( ! sudo grep --quiet "$${MOUNT_HDD}" /proc/mounts )|| \
