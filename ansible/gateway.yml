@@ -33,6 +33,12 @@
       volumes:
         - /hdc/data/mongo/:/data/db/:rw
 
+  - name: Ansible/docker_container bug - remove blank lines in .env
+    replace:
+      path: /hdc/endpoint/config.env
+      regexp: "^$"
+      replace: "#"
+
   - name: Start gateway
     docker_container:
       name: gateway
