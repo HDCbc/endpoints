@@ -14,11 +14,15 @@
         name: docker
         state: restarted
 
-    - name: Install make
+    - name: Install pip
       apt:
-        name: make
+        name: python-pip
         state: present
         update_cache: yes
+
+    - name: Install Docker-Py
+      pip:
+        name: docker-py
 
     - name: Fire up containers
       command: chdir=/hdc/endpoint make deploy
