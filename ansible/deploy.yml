@@ -24,6 +24,12 @@
       pip:
         name: docker-py
 
+    - name: Remove blank lines in .env (for Ansible/docker_container bug)
+      replace:
+        path: /hdc/endpoint/config.env
+        regexp: "^$"
+        replace: "#"
+
     - name: Start gateway_db
       docker_container:
         name: gateway_db
