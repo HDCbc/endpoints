@@ -35,6 +35,7 @@
         name: gateway_db
         hostname: gateway_db
         image: mongo:3.2.9
+        pull: true
         command: --nojournal
         restart_policy: always
         log_driver: syslog
@@ -46,6 +47,7 @@
         name: gateway
         hostname: gateway
         image: hdcbc/gateway:latest
+        pull: true
         restart_policy: always
         log_driver: syslog
         volumes:
