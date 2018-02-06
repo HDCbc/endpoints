@@ -126,7 +126,7 @@ Please send it (or a copy/paste with the line breaks intact) to admin@hdcbc.ca.
 
 Configure config.env:
 
-* GATEWAY_ID - provided by the HDC
+* GATEWAY_ID - provided by the HDC (Enter without leading 0's)
 * DOCTOR_IDS - list of doctor CPSIDs, separated by commas (e.g. 123245,23456)
 * IP_STATIC  - desired IP address, for HDC managed solution
 * DATA_FROM  - exporting server, to be allowed through the firewall
