@@ -29,10 +29,9 @@ Operating system:
 
 Server hardware:
 
-* Lenovo M92p SFF - i7-3770, 8GB RAM, 1TB HD (1st gen deployment)
-* Lenovo M93p SFF - i7-4770, 8GB RAM, 1TB HD (2nd gen deployment)
-* HP Pavilion Mini - Pentium 3558U, 4GB RAM, 500GB HD (3nd gen deployment)
-* InFocus Kangaroo Pro - Atom x5-Z8500, 2GB RAM, 32GB HD (4th gen deployment)
+* Lenovo M93p SFF - i7-4770, 8GB RAM, 1TB HD (1st gen deployment)
+* InFocus Kangaroo Pro - Atom x5-Z8500, 2GB RAM, 32GB HD (2nd gen deployment)
+* Intel NUC - i5-6260U, 8GB RAM, 256GB SSD (3rd gen deployment)
 
 
 Note: Guide is tailored to current generation hardware.
@@ -126,7 +125,7 @@ Please send it (or a copy/paste with the line breaks intact) to admin@hdcbc.ca.
 
 Configure config.env:
 
-* GATEWAY_ID - provided by the HDC
+* GATEWAY_ID - provided by the HDC (Enter without leading 0's)
 * DOCTOR_IDS - list of doctor CPSIDs, separated by commas (e.g. 123245,23456)
 * IP_STATIC  - desired IP address, for HDC managed solution
 * DATA_FROM  - exporting server, to be allowed through the firewall
