@@ -90,12 +90,12 @@ encrypt: packages kangaroo
 	@	[ ! -e /hdc/decrypt.sh ]|| sudo rm /hdc/decrypt.sh
 	@	sudo ln -s $$( pwd )/decrypt.sh /hdc/decrypt.sh
 	@	. ../config.env; \
-		if [ ! -z "$${VOLS_DATA}" ]; \
+		if [ ! -z "$${ENCRYPTED}" ]; \
 		then \
 			sudo mkdir -p "$${ENCRYPTED}" "$${VOLS_DATA}"; \
 			sudo encfs -o nonempty --public "$${ENCRYPTED}" "$${VOLS_DATA}"; \
-		fi; \
-		sudo chmod a+rx "$${ENCRYPTED}" "$${VOLS_DATA}"
+			sudo chmod a+rx "$${ENCRYPTED}" "$${VOLS_DATA}"; \
+		fi
 	@	. ../config.env; \
 		if [ ! -z "$${MOUNT_HDD}" ]; \
 		then \
