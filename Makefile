@@ -187,6 +187,11 @@ sample-data:
 	@	sudo docker exec gateway /gateway/util/sample10/import.sh || true
 
 
+# Benchmark available Internet connection
+benchmark-speed:
+	@	curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -
+
+
 # Setup Ansible from PPA
 ansible-server:
 	@	sudo apt-add-repository ppa:ansible/ansible -y
