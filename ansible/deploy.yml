@@ -9,24 +9,51 @@
       args:
         creates: /hdc/endpoint/config.env
 
-    - name: Reload systemd and Start Docker (Xenial/16.04)
-      when: ansible_distribution_release == 'xenial'
-      systemd:
-        state: restarted
-        daemon_reload: yes
-        name: docker
-
-    - name: Reload systemd and Start Docker (Trusty/14.04)
-      when: ansible_distribution_release == 'trusty'
+    - name: Restart/start Docker
       service:
         name: docker
         state: restarted
 
-    - name: Install make
+    - name: Install pip
       apt:
-        name: make
+        name: python-pip
         state: present
         update_cache: yes
 
-    - name: Fire up containers
-      command: chdir=/hdc/endpoint make deploy
+    - name: Install Docker-Py
+      pip:
+        name: docker-py
+
+    - name: Remove blank lines in .env (for Ansible/docker_container bug)
+      replace:
+        path: /hdc/endpoint/config.env
+        regexp: "^$"
+        replace: "#"
+
+    - name: Start gateway_db
+      docker_container:
+        name: gateway_db
+        hostname: gateway_db
+        image: mongo:3.2.9
+        pull: true
+        command: --nojournal
+        restart_policy: always
+        log_driver: syslog
+        volumes:
+          - /hdc/data/mongo/:/data/db/:rw
+
+    - name: Start gateway
+      docker_container:
+        name: gateway
+        hostname: gateway
+        image: hdcbc/gateway:latest
+        pull: true
+        restart_policy: always
+        log_driver: syslog
+        volumes:
+          - /hdc/data/config/ssh/:/home/autossh/.ssh/:rw
+        ports:
+          - "3001:3001"
+        links:
+          - gateway_db:database
+        env_file: "/hdc/endpoint/config.env"
