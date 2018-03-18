@@ -5,6 +5,12 @@
 set -eu
 
 
+# Verbose option
+#
+[ ! -z "${VERBOSE+x}" ]&&[ "${VERBOSE}" == true ]&& \
+        set -x
+
+
 # Get name and path of this script, tracing symlinks
 #
 SOURCE="${BASH_SOURCE[0]}"
@@ -68,6 +74,25 @@ then
 		sudo ln -s "${MOUNT_HDD}/docker" /var/lib/docker
 	( grep -q "\-g ${MOUNT_HDD}" /lib/systemd/system/docker.service )|| \
 		sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g ${MOUNT_HDD}/docker -H fd://|" /lib/systemd/system/docker.service
+fi
+
+
+# If var provided, redirect /var/lib/docker and set it in Docker config
+#
+if
+	[ "${VL_DOCKER}" ]
+then
+	# If /var/lib/docker (not symlink), move it
+	[ ! -d /var/lib/docker ]||[ -L /var/lib/docker ]|| \
+		sudo mv /var/lib/docker "${VL_DOCKER}"
+
+	# If no alias, create it
+	[ -L /var/lib/docker ]|| \
+		sudo ln -s "${VL_DOCKER}" /var/lib/docker
+
+	# Not redirect not in docker.service, add it
+	( grep -q "\-g ${VL_DOCKER}" /lib/systemd/system/docker.service )|| \
+		sudo sed -i "s|ExecStart=/usr/bin/dockerd -H fd://|ExecStart=/usr/bin/dockerd -g ${VL_DOCKER} -H fd://|" /lib/systemd/system/docker.service
 fi
 
 

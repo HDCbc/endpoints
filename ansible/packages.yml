@@ -12,6 +12,7 @@
         - autossh
         - encfs
         - lynx
+        - make
         - monit
         - nano
         - parted
