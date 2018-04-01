@@ -121,7 +121,6 @@ then
 	sudo systemctl start docker
 else
 	sudo service docker restart
-	sudo service docker start
 fi
 
 
